@@ -13,8 +13,12 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ### Fivetran Connector SDK: Fivetran Sync Status
 
-![Fivetran Sync Status Screenshot](./examples/quick_start_examples/weather/images/fivetran_syncstatus_kelly_weather_connector_sdk.png)
+![Fivetran Sync Status Screenshot](./examples/quick_start_examples/weather/images/fivetran_syncstatus_kelly_cypress_weather_connector_sdk.png)
 
 ### Fivetran Connector SDK: Data moved with the Connector SDK to Snowflake
 
-![Snowflake Snowsight Status Screenshot](./examples/quick_start_examples/weather/images/snowflake_snowsight_kelly_weather_connector_sdk.png)
+![Snowflake Snowsight Data Preview Screenshot](./examples/quick_start_examples/weather/images/snowflake_snowsight_datapreview_kelly_cypress_weather_connector_sdk.png)
+
+### Fivetran Connector SDK: Snowflake Snowsight Dashboard with the new temperature data
+
+![Snowflake Snowsight Dashboard Screenshot](./examples/quick_start_examples/weather/images/snowflake_snowsight_dashboard_fivetran_connector_sdk.png)
