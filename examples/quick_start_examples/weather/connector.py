@@ -1,5 +1,5 @@
 # This is a simple example for how to work with the fivetran_connector_sdk module.
-# It shows the use of a requirements.txt file and a connector that calls a publicly available API to get the weather forecast data for Myrtle Beach in South Carolina, USA.
+# It shows the use of a requirements.txt file and a connector that calls a publicly available API to get the weather forecast data for Cypress, Texas, USA.
 # It also shows how to use the logging functionality provided by fivetran_connector_sdk, by logging important steps using log.info() and log.fine()
 # See the Technical Reference documentation (https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update)
 # and the Best Practices documentation (https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
@@ -34,8 +34,8 @@ def str2dt(incoming: str) -> datetime:
 def update(configuration: dict, state: dict):
     cursor = state['startTime'] if 'startTime' in state else '0001-01-01T00:00:00Z'
 
-    # Get weather forecast for Myrtle Beach, SC from National Weather Service API.
-    response = rq.get("https://api.weather.gov/gridpoints/ILM/58,40/forecast")
+    # Get weather forecast for Cypress, TX from National Weather Service API.
+    response = rq.get("https://api.weather.gov/gridpoints/HGX/52,106/forecast")
     data = response.json()
     periods = data['properties']['periods']
     log.info(f"number of periods={len(periods)}")
