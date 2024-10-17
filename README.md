@@ -13,6 +13,23 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ## Quick reference bash commands for running in the VS Code terminal
 
+### From this path: 
+(.venv) kelly.kohlleffel@kelly Fivetran_Connector_SDK %
+
+### Navigate to the quick_start_example/weather
+```
+cd examples/quick_start_examples/weather
+```
+### Run the custom connector code
+```
+python connector.py
+```
+### Deploy the connector to Fivetran
+```
+fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --connection <CONNECTION-NAME>
+```
+## Alternatively: 
+
 ### Ensure the directory exists
 ```
 mkdir -p files
