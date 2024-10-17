@@ -11,6 +11,34 @@ It also shows how to use the logging functionality provided by fivetran_connecto
 
 See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
 
+## Quick reference bash commands for running in the VS Code terminal
+
+### Ensure the directory exists
+```
+mkdir -p files
+```
+### Activate your virtual environment
+```
+source .venv/bin/activate
+```
+### Navigate to the quick_start_example/weather
+```
+cd examples/quick_start_examples/weather
+```
+### Install the Fivetran requirements.txt file
+```
+pip install -r requirements.txt
+```
+### Run the custom connector code
+```
+python connector.py
+```
+### Deploy the connector to Fivetran
+```
+fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --connection <CONNECTION-NAME>
+```
+## Fivetran Connector SDK in action
+
 ### Fivetran Connector SDK: Fivetran Sync Status
 
 ![Fivetran Sync Status Screenshot](./examples/quick_start_examples/weather/images/fivetran_syncstatus_kelly_cypress_weather_connector_sdk.png)
