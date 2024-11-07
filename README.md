@@ -6,8 +6,9 @@
 This are simple examples for how to work with the fivetran_connector_sdk module. 
 
 It shows the use of a requirements.txt file and a connector that calls a publicly available APIs:
-    - Weather forecast data from api.weather.gov for Cypress, TX, USA. 
-    - Book data from the OpenLibrary API.
+
+- Weather forecast data from api.weather.gov for Cypress, TX, USA. 
+- Book data from the OpenLibrary API.
 
 It also shows how to use the logging functionality provided by fivetran_connector_sdk, by logging important steps using log.info() and log.fine()
 
