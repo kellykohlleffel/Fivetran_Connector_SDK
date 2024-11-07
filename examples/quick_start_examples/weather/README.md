@@ -1,13 +1,11 @@
 # Fivetran_Connector_SDK
- ## Quickly build custom connectors using the Fivetran SDK
+ ## Quickly build a custom weather data connector using the Fivetran SDK
 
 [Fivetran's Connector SDK](https://fivetran.com/docs/connectors/connector-sdk) allows you to code a custom data connector using Python and deploy it as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources.
 
-This are simple examples for how to work with the fivetran_connector_sdk module. 
+This is a simple example for how to work with the fivetran_connector_sdk module. 
 
-It shows the use of a requirements.txt file and a connector that calls a publicly available APIs:
-    - Weather forecast data from api.weather.gov for Cypress, TX, USA. 
-    - Book data from the OpenLibrary API.
+It shows the use of a requirements.txt file and a connector that calls a publicly available API to get the weather forecast data for Myrtle Beach in South Carolina, USA. 
 
 It also shows how to use the logging functionality provided by fivetran_connector_sdk, by logging important steps using log.info() and log.fine()
 

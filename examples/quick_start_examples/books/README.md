@@ -6,7 +6,6 @@
 This are simple examples for how to work with the fivetran_connector_sdk module. 
 
 It shows the use of a requirements.txt file and a connector that calls a publicly available APIs:
-    - Weather forecast data from api.weather.gov for Cypress, TX, USA. 
     - Book data from the OpenLibrary API.
 
 It also shows how to use the logging functionality provided by fivetran_connector_sdk, by logging important steps using log.info() and log.fine()
@@ -20,7 +19,7 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ### Navigate to the quick_start_example/weather
 ```
-cd examples/quick_start_examples/weather
+cd examples/quick_start_examples/books
 ```
 ### Run the custom connector code
 ```
@@ -42,7 +41,7 @@ source .venv/bin/activate
 ```
 ### Navigate to the quick_start_example/weather
 ```
-cd examples/quick_start_examples/weather
+cd examples/quick_start_examples/books
 ```
 ### Install the Fivetran requirements.txt file
 ```
