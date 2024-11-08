@@ -41,7 +41,7 @@ def schema(configuration: dict):
         list: A list with schema definitions for each table to sync.
     
     Schema:
-    - table: "books"
+    - table: "book"
     - primary_key: "title"
     - columns:
         - title (STRING): Title of the book
@@ -50,7 +50,7 @@ def schema(configuration: dict):
     """
     return [
         {
-            "table": "books",  # Table name in the destination.
+            "table": "book",  # Table name in the destination.
             "primary_key": ["title"],  # Primary key column for deduplication.
             "columns": {  # Columns and their data types.
                 "title": "STRING",  # Book title as a string.
