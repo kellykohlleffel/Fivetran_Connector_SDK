@@ -18,7 +18,7 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 ### From this path: 
 (.venv) kelly.kohlleffel@kelly Fivetran_Connector_SDK %
 
-### Navigate to the quick_start_example/weather
+### Navigate to the quick_start_example/books
 ```
 cd examples/quick_start_examples/books
 ```
