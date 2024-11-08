@@ -3,10 +3,11 @@
 
 [Fivetran's Connector SDK](https://fivetran.com/docs/connectors/connector-sdk) allows you to code a custom data connector using Python and deploy it as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources.
 
-This are simple examples for how to work with the fivetran_connector_sdk module. 
+This is a simple example for how to work with the fivetran_connector_sdk module. 
 
-It shows the use of a requirements.txt file and a connector that calls a publicly available APIs:
-    - Book data from the OpenLibrary API.
+It shows the use of a requirements.txt file and a connector that calls a publicly available API:
+
+- Book data from the OpenLibrary API
 
 It also shows how to use the logging functionality provided by fivetran_connector_sdk, by logging important steps using log.info() and log.fine()
 
@@ -31,6 +32,10 @@ fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --
 ```
 ## Alternatively: 
 
+### Navigate to the Fivetran_Connector_SDK directory in Documents/Github
+```
+cd ~/Documents/Github/Fivetran_Connector_SDK
+```
 ### Ensure the directory exists
 ```
 mkdir -p files
@@ -39,7 +44,7 @@ mkdir -p files
 ```
 source .venv/bin/activate
 ```
-### Navigate to the quick_start_example/weather
+### Navigate to the quick_start_example/books
 ```
 cd examples/quick_start_examples/books
 ```
@@ -59,12 +64,12 @@ fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --
 
 ### Fivetran Connector SDK: Fivetran Sync Status
 
-![Fivetran Sync Status Screenshot](./examples/quick_start_examples/weather/images/fivetran_syncstatus_kelly_cypress_weather_connector_sdk.png)
+![Fivetran Sync Status Screenshot](./images/fivetran_syncstatus_books1_connector_sdk.png)
 
 ### Fivetran Connector SDK: Data moved with the Connector SDK to Snowflake
 
-![Snowflake Snowsight Data Preview Screenshot](./examples/quick_start_examples/weather/images/snowflake_snowsight_datapreview_kelly_cypress_weather_connector_sdk.png)
+![Snowflake Snowsight Data Preview Screenshot](./images/snowflake_snowsight_datapreview2_books1_connector_sdk.png)
 
-### Fivetran Connector SDK: Snowflake Snowsight Dashboard with the new temperature data
+### Fivetran Connector SDK: Snowflake Snowsight Dashboard with the new books data
 
-![Snowflake Snowsight Dashboard Screenshot](./examples/quick_start_examples/weather/images/snowflake_snowsight_dashboard_fivetran_connector_sdk.png)
+![Snowflake Snowsight Dashboard Screenshot](./images/snowflake_snowsight_dashboard_books1_connector_sdk.png)

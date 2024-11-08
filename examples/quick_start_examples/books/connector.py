@@ -12,6 +12,10 @@ Configuration:
 - The search term (e.g., "Python") can be provided in the configuration to 
   customize the data retrieval.
 
+Requirements:
+- No additional Python libraries are required, as `requests` and the 
+  `fivetran_connector_sdk` are assumed to be pre-installed.
+
 Fivetran Connector SDK Documentation:
 - Technical Reference: https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update
 - Best Practices: https://fivetran.com/docs/connectors/connector-sdk/best-practices
@@ -35,15 +39,23 @@ def schema(configuration: dict):
     
     Returns:
         list: A list with schema definitions for each table to sync.
+    
+    Schema:
+    - table: "books"
+    - primary_key: "title"
+    - columns:
+        - title (STRING): Title of the book
+        - author (STRING): Author name(s), concatenated if multiple
+        - publication_date (STRING): First publication year, stored as a string for compatibility
     """
     return [
         {
-            "table": "book",  # Table name in the destination.
+            "table": "books",  # Table name in the destination.
             "primary_key": ["title"],  # Primary key column for deduplication.
             "columns": {  # Columns and their data types.
                 "title": "STRING",  # Book title as a string.
                 "author": "STRING",  # Author(s) as a string.
-                "publication_date": "DATE",  # First publication date as a date.
+                "publication_date": "STRING",  # First publication date as a string.
             },
         }
     ]
@@ -60,16 +72,22 @@ def update(configuration: dict, state: dict):
     Yields:
         op.upsert: An upsert operation for each book record.
         op.checkpoint: A checkpoint operation to save the updated state.
+    
+    Logic:
+    - Fetch book data based on a search term, defaulting to "Python".
+    - Process each book entry, extracting title, author(s), and publication date.
+    - Skip books without a publication date or ones with dates older than the last saved date (cursor).
+    - Save the latest publication date encountered to the state after each sync.
     """
     # Set the search term from the configuration or default to 'Python'.
     search_query = configuration.get("search_query", "Python")  # Set the search term.
-    cursor = state.get("publication_date", "0001-01-01")  # Set the cursor for pagination.
+    cursor = state.get("publication_date", "0001-01-01")  # Initialize the cursor with a default value as a string.
 
-    # Fetch data from OpenLibrary API.
+    # Fetch data from OpenLibrary API using the configured search term.
     response = rq.get(f"https://openlibrary.org/search.json?q={search_query}")
-    data = response.json()
+    data = response.json()  # Parse the JSON response.
     books = data.get('docs', [])  # Retrieve the list of books from the response.
-    log.info(f"Number of books retrieved: {len(books)}")
+    log.info(f"Number of books retrieved: {len(books)}")  # Log the number of books retrieved.
 
     # Print table header for visual output in debug mode.
     print("\n--- Processing and Printing Synced Data ---")
@@ -79,13 +97,13 @@ def update(configuration: dict, state: dict):
     # Loop through each book in the response data.
     for book in books:
         # Extract relevant details for each book, handling missing fields.
-        title = book.get("title", "Unknown Title")
-        author = ", ".join(book.get("author_name", ["Unknown Author"]))
-        publication_date = book.get("first_publish_year", None)
+        title = book.get("title", "Unknown Title")  # Get the title, or use "Unknown Title" if missing.
+        author = ", ".join(book.get("author_name", ["Unknown Author"]))  # Join author names if multiple, default to "Unknown Author".
+        publication_date = str(book.get("first_publish_year", None))  # Get the publication year, convert to string, default to "None".
 
-        # Skip entries with no publication date or if the date is older than the cursor.
-        if publication_date is None or publication_date < int(cursor):
-            continue
+        # Skip entries with no publication date or if the date is earlier than the cursor.
+        if publication_date == "None" or publication_date < cursor:
+            continue  # Skip this book if it doesn't meet the criteria.
 
         # Print each processed row in the debug output.
         print(f"{title:<40} {author:<25} {publication_date:<15}")
@@ -95,19 +113,19 @@ def update(configuration: dict, state: dict):
 
         # Yield each book as an upsert operation for Fivetran.
         yield op.upsert(
-            table="book",
+            table="book",  # Table to which data is upserted.
             data={
-                "title": title,
-                "author": author,
-                "publication_date": str(publication_date)
+                "title": title,  # Book title.
+                "author": author,  # Author(s).
+                "publication_date": publication_date  # Publication date as a string.
             }
         )
 
         # Update the cursor to the latest publication date encountered.
-        cursor = max(cursor, publication_date)
+        cursor = max(cursor, publication_date)  # Ensure cursor holds the latest date.
 
     # Save the updated state with the latest publication date.
-    yield op.checkpoint(state={"publication_date": cursor})
+    yield op.checkpoint(state={"publication_date": cursor})  # Save the cursor to maintain sync state.
 
 # Create the connector object for Fivetran.
 connector = Connector(update=update, schema=schema)

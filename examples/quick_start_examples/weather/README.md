@@ -30,6 +30,11 @@ fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --
 ```
 ## Alternatively: 
 
+### Navigate to the Fivetran_Connector_SDK directory in Documents/Github
+```
+cd ~/Documents/Github/Fivetran_Connector_SDK
+```
+
 ### Ensure the directory exists
 ```
 mkdir -p files
@@ -58,12 +63,12 @@ fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --
 
 ### Fivetran Connector SDK: Fivetran Sync Status
 
-![Fivetran Sync Status Screenshot](./examples/quick_start_examples/weather/images/fivetran_syncstatus_kelly_cypress_weather_connector_sdk.png)
+![Fivetran Sync Status Screenshot](./images/fivetran_syncstatus_kelly_cypress_weather_connector_sdk.png)
 
 ### Fivetran Connector SDK: Data moved with the Connector SDK to Snowflake
 
-![Snowflake Snowsight Data Preview Screenshot](./examples/quick_start_examples/weather/images/snowflake_snowsight_datapreview_kelly_cypress_weather_connector_sdk.png)
+![Snowflake Snowsight Data Preview Screenshot](./images/snowflake_snowsight_datapreview_kelly_cypress_weather_connector_sdk.png)
 
 ### Fivetran Connector SDK: Snowflake Snowsight Dashboard with the new temperature data
 
-![Snowflake Snowsight Dashboard Screenshot](./examples/quick_start_examples/weather/images/snowflake_snowsight_dashboard_fivetran_connector_sdk.png)
+![Snowflake Snowsight Dashboard Screenshot](./images/snowflake_snowsight_dashboard_fivetran_connector_sdk.png)
