@@ -77,3 +77,21 @@ fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --
 ### Fivetran Connector SDK: Snowflake Snowsight Dashboard with the new books data
 
 ![Snowflake Snowsight Dashboard Screenshot](./images/snowflake_snowsight_dashboard_books1_connector_sdk.png)
+
+### SQL query for all books (update the database and schema names)
+```
+SELECT * FROM HOL_DATABASE.BOOKS1_CONNECTOR_SDK.BOOK;
+```
+
+### SQL query for the books visualization (update the database and schema names)
+```
+SELECT 
+    PUBLICATION_DATE, 
+    COUNT(*) AS book_count
+FROM 
+    HOL_DATABASE.BOOKS1_CONNECTOR_SDK.BOOK
+GROUP BY 
+    PUBLICATION_DATE
+ORDER BY 
+    PUBLICATION_DATE;
+```
