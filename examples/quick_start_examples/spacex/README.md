@@ -72,11 +72,11 @@ fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --
 
 ### Fivetran Connector SDK: Data moved with the Connector SDK to Snowflake
 
-![Snowflake Snowsight Data Preview Screenshot](./images/snowflake_snowsight_datapreview_spacex_connector_sdk.png)
+![Snowflake Snowsight Data Preview Screenshot](./images/snowflake_snowsight_datapreview1_spacex_connector_sdk.png)
 
 ### Fivetran Connector SDK: Snowflake Snowsight Dashboard with the new SpaceX data
 
-![Snowflake Snowsight Dashboard Screenshot](./images/snowflake_snowsight_dashboard_spacex_connector_sdk.png)
+![Snowflake Snowsight Dashboard Screenshot](./images/snowflake_snowsight_dashboard1_spacex_connector_sdk.png)
 
 ### SQL query for all SpaceX launches (update the database and schema names)
 ```
