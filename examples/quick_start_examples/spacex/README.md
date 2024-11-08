@@ -48,7 +48,7 @@ mkdir -p files
 ```
 source .venv/bin/activate
 ```
-### Navigate to the quick_start_example/books
+### Navigate to the quick_start_example/spacex
 ```
 cd examples/quick_start_examples/spacex
 ```
