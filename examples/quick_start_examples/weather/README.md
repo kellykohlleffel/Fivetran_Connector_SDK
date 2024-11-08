@@ -34,7 +34,10 @@ fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --
 ```
 cd ~/Documents/Github/Fivetran_Connector_SDK
 ```
-
+### Navigate up one level from books to weather, for example
+```
+cd ../weather
+```
 ### Ensure the directory exists
 ```
 mkdir -p files

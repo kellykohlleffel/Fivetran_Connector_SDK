@@ -6,11 +6,11 @@ It retrieves book information such as title, author, and publication date based
 on a search query, and stores the data in Fivetran using the SDK's upsert operation.
 
 Example usage: This script can be used to demonstrate pulling book data from 
-OpenLibrary, making it useful for educational or demo purposes.
+OpenLibrary, making it useful to better understand how the Fivetran Connector SDK works.
 
 Configuration:
 - The search term (e.g., "Python") can be provided in the configuration to 
-  customize the data retrieval.
+  customize the data retrieval and limit records.
 
 Requirements:
 - No additional Python libraries are required, as `requests` and the 
