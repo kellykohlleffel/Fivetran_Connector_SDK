@@ -56,6 +56,9 @@ def schema(configuration: dict):
                 "title": "STRING",  # Book title as a string.
                 "author": "STRING",  # Author(s) as a string.
                 "publication_date": "STRING",  # First publication date as a string.
+                "isbn": "STRING",
+                "number_of_pages": "INT",
+                "publisher": "STRING",
             },
         }
     ]
@@ -79,8 +82,8 @@ def update(configuration: dict, state: dict):
     - Skip books without a publication date or ones with dates older than the last saved date (cursor).
     - Save the latest publication date encountered to the state after each sync.
     """
-    # Set the search term from the configuration or default to 'Python'.
-    search_query = configuration.get("search_query", "Python")  # Set the search term.
+    # Set the search term from the configuration or default to 'something you choose such as Python, History, Fiction, etc.'.
+    search_query = configuration.get("search_query", "Agatha Christie")  # Set the search term.
     cursor = state.get("publication_date", "0001-01-01")  # Initialize the cursor with a default value as a string.
 
     # Fetch data from OpenLibrary API using the configured search term.
@@ -100,6 +103,9 @@ def update(configuration: dict, state: dict):
         title = book.get("title", "Unknown Title")  # Get the title, or use "Unknown Title" if missing.
         author = ", ".join(book.get("author_name", ["Unknown Author"]))  # Join author names if multiple, default to "Unknown Author".
         publication_date = str(book.get("first_publish_year", None))  # Get the publication year, convert to string, default to "None".
+        isbn = ", ".join(book.get("isbn", ["Unknown ISBN"]))
+        number_of_pages = book.get("number_of_pages_median", None)
+        publisher = ", ".join(book.get("publisher", ["Unknown Publisher"]))
 
         # Skip entries with no publication date or if the date is earlier than the cursor.
         if publication_date == "None" or publication_date < cursor:
