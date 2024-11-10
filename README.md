@@ -9,6 +9,9 @@ It shows the use of a requirements.txt file and a connector that calls a publicl
 
 - Weather forecast data from api.weather.gov for Cypress, TX, USA. 
 - Book data from the OpenLibrary API.
+- Meals data from TheMealsDB API.
+- Solar system data from the Solar System OpenData API.
+- SpaceX launch data from the SpaceX API.
 
 It also shows how to use the logging functionality provided by fivetran_connector_sdk, by logging important steps using log.info() and log.fine()
 
