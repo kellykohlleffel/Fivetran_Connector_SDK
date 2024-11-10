@@ -1,5 +1,5 @@
 # Fivetran_Connector_SDK
- ## Quickly build custom connectors using the Fivetran SDK
+ ## Quickly build a custom OpenLibrary books data connector using the Fivetran SDK
 
 [Fivetran's Connector SDK](https://fivetran.com/docs/connectors/connector-sdk) allows you to code a custom data connector using Python and deploy it as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources.
 

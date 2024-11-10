@@ -75,3 +75,8 @@ fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --
 ### Fivetran Connector SDK: Snowflake Snowsight Dashboard with the new temperature data
 
 ![Snowflake Snowsight Dashboard Screenshot](./images/snowflake_snowsight_dashboard_fivetran_connector_sdk.png)
+
+### SQL query for Cypress, TX weather (update the database and schema names)
+```
+SELECT * FROM HOL_DATABASE.WEATHER_CONNECTOR_SDK.PERIOD;
+```
