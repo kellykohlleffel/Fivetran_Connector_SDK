@@ -3,20 +3,22 @@
 
 [Fivetran's Connector SDK](https://fivetran.com/docs/connectors/connector-sdk) allows you to code a custom data connector using Python and deploy it as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources.
 
-This are simple examples for how to work with the fivetran_connector_sdk module. 
+These are simple examples for how to work with the fivetran_connector_sdk module. 
 
-It shows the use of a requirements.txt file and a connector that calls a publicly available APIs:
+They show the use of a requirements.txt file and a connector.py file that call publicly available APIs.
 
-- Book data from the OpenLibrary API.
-- Meals data from TheMealsDB API.
-- US National Parks data from the US National Park Service API.
-- Solar system data from the Solar System OpenData API.
-- SpaceX launch data from the SpaceX API.
-- Weather forecast data from api.weather.gov for Cypress, TX, USA. 
-
-It also shows how to use the logging functionality provided by fivetran_connector_sdk, by logging important steps using log.info() and log.fine()
+They also show how to use the logging functionality provided by fivetran_connector_sdk, by logging important steps using log.info() and log.fine()
 
 See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
+
+**APIs used in these examples**:
+
+- Book data from the OpenLibrary API
+- Meals data from TheMealsDB API
+- US National Parks data from the US National Park Service API (extracts data from multiple tables)
+- Solar system data from the Solar System OpenData API
+- SpaceX launch data from the SpaceX API
+- Weather forecast data from api.weather.gov for Cypress, TX, USA 
 
 ## Quick reference bash commands for running in the VS Code terminal
 

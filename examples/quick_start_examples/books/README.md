@@ -17,8 +17,8 @@ This script connects to the OpenLibrary API using the Fivetran Connector SDK. It
 
 **Example usage**: This script can be used to demonstrate pulling book data from OpenLibrary, making it useful to better understand how the Fivetran Connector SDK works.
 
-Configuration:
-- The search term (e.g., "Python") can be provided in the configuration to customize the data retrieval and limit records.
+**Configuration**:
+- A **search term** (e.g., "Python, SQL, History, etc.") can be provided in the configuration to customize the data retrieval and limit records.
 
 ## Quick reference bash commands for running in the VS Code terminal
 

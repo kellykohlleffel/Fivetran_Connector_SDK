@@ -3,7 +3,7 @@
 
 [Fivetran's Connector SDK](https://fivetran.com/docs/connectors/connector-sdk) allows you to code a custom data connector using Python and deploy it as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources.
 
-This is a simple example for how to work with the fivetran_connector_sdk module. 
+This is a simple example for how to work with the fivetran_connector_sdk module to extract data from multiple tables. 
 
 It shows the use of a connector.py file that calls a publicly available API.
 
@@ -13,12 +13,11 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ## US National Parks data from the National Park Service API
 
-This script connects to the National Park Service (NPS) API using the Fivetran Connector SDK. It retrieves data on U.S. national parks, articles, fees and passes, people, and alerts. The data is stored in Fivetran using the SDK's upsert operation.
+This script connects to the National Park Service (NPS) API using the Fivetran Connector SDK. It retrieves data from multiple tables on U.S. national parks, articles, fees and passes, people, and alerts. The data is stored in Fivetran using the SDK's upsert operation.
 
-**Example usage**: This script demonstrates pulling park, article, feespasses, people, and alerts data from the NPS API, useful for 
-analyzing park details, alerts, fees, passes, associated articles, and historical figures.
+**Example usage**: This script demonstrates pulling data from multiple tables including park, article, feespasses, people, and alerts data from the NPS API, useful for analyzing park details, alerts, fees, passes, associated articles, and historical figures.
 
-Configuration:
+**Configuration**:
 - An API key is required for accessing the NPS API. Replace 'YOUR_API_KEY' in the `API_KEY` variable
   with your actual API key.
 - Set the `LIMIT` variable to control the number of records retrieved per table.
