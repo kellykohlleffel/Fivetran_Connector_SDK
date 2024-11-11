@@ -1,17 +1,21 @@
-# Fivetran_Connector_SDK
- ## Quickly build a custom TheMealDB data connector using the Fivetran SDK
+# Fivetran_Connector_SDK: Meals Data
+ ## Quickly build a custom The MealDB data connector using the Fivetran SDK
 
 [Fivetran's Connector SDK](https://fivetran.com/docs/connectors/connector-sdk) allows you to code a custom data connector using Python and deploy it as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources.
 
 This is a simple example for how to work with the fivetran_connector_sdk module. 
 
-It shows the use of a requirements.txt file and a connector that calls a publicly available API:
-
-- Meals data from the TheMealDB API
+It shows the use of a connector.py file that calls a publicly available API.
 
 It also shows how to use the logging functionality provided by fivetran_connector_sdk, by logging important steps using log.info() and log.fine()
 
 See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
+
+## Meals data from the MealsDB API
+
+This script connects to TheMealDB API using the Fivetran Connector SDK. It retrieves information about meals, including meal name, category, cuisine, instructions, and main ingredients, and stores this data in Fivetran using the SDK's upsert operation.
+
+**Example usage**: This script can be used to demonstrate pulling meal data from TheMealDB, making it useful for showcasing how the Fivetran Connector SDK works.
 
 ## Quick reference bash commands for running in the VS Code terminal
 

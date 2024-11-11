@@ -2,11 +2,11 @@
 connector.py
 
 This script connects to the National Park Service (NPS) API using the Fivetran Connector SDK.
-It retrieves data on U.S. national parks, articles, fees and passes, and people (such as notable individuals associated with parks).
+It retrieves data on U.S. national parks, articles, fees and passes, people, and alerts.
 The data is stored in Fivetran using the SDK's upsert operation.
 
-Example usage: This script demonstrates pulling park, article, feespasses, and people data from the NPS API, useful for 
-analyzing park details, fees, passes, associated articles, and historical figures.
+Example usage: This script demonstrates pulling park, article, feespasses, people, and alerts data from the NPS API, useful for 
+analyzing park details, alerts, fees, passes, associated articles, and historical figures.
 
 Configuration:
 - An API key is required for accessing the NPS API. Replace 'YOUR_API_KEY' in the `API_KEY` variable
@@ -25,7 +25,7 @@ from fivetran_connector_sdk import Operations as op  # Operations class for Five
 
 # Set the API key and record retrieval limit once, and they will be used for all API requests.
 API_KEY = "3qpAYIbdhT09TfPf9vf0MPoLrk9vrdK8Fn9BL0vt"  # Replace with your actual API key
-LIMIT = 30  # Set the maximum number of records retrieved per table
+LIMIT = 3  # Set the maximum number of records retrieved per table
 
 # Define the schema function to configure the schema your connector delivers.
 def schema(configuration: dict):
@@ -88,6 +88,18 @@ def schema(configuration: dict):
                 "description": "STRING",
                 "url": "STRING",
                 "related_parks": "STRING",
+            },
+        },
+        {
+            "table": "alerts",
+            "primary_key": ["alert_id"],
+            "columns": {
+                "alert_id": "STRING",
+                "park_id": "STRING",
+                "title": "STRING",
+                "description": "STRING",
+                "category": "STRING",
+                "url": "STRING",
             },
         }
     ]
@@ -269,6 +281,42 @@ def update(configuration: dict, state: dict):
     else:
         log.error(f"People API request failed with status code {response_people.status_code}")
 
+    # Fetch and yield alerts data
+    endpoint_alerts = "https://developer.nps.gov/api/v1/alerts"
+    params_alerts = {
+        "api_key": API_KEY,
+        "limit": LIMIT
+    }
+
+    response_alerts = rq.get(endpoint_alerts, params=params_alerts)
+    
+    if response_alerts.status_code == 200:
+        data_alerts = response_alerts.json()
+        alerts = data_alerts.get("data", [])
+        log.info(f"Number of alerts retrieved: {len(alerts)}")
+
+        for alert in alerts:
+            alert_id = alert.get("id", "Unknown ID")
+            park_id = alert.get("parkCode", "")
+            title = alert.get("title", "No Title")
+            description = alert.get("description", "No Description")
+            category = alert.get("category", "No Category")
+            url = alert.get("url", "")
+
+            yield op.upsert(
+                table="alerts",
+                data={
+                    "alert_id": alert_id,
+                    "park_id": park_id,
+                    "title": title,
+                    "description": description,
+                    "category": category,
+                    "url": url,
+                }
+            )
+    else:
+        log.error(f"Alerts API request failed with status code {response_alerts.status_code}")
+
     # Save checkpoint state if needed (this API does not use a cursor-based sync).
     yield op.checkpoint(state={})
 
@@ -277,6 +325,6 @@ connector = Connector(update=update, schema=schema)
 
 # Run the connector in debug mode
 if __name__ == "__main__":
-    print("Running the NPS connector (Parks, Articles, FeesPasses, and People tables)...")
+    print("Running the NPS connector (Parks, Articles, FeesPasses, People, and Alerts tables)...")
     connector.debug()  # Run the connector in debug mode to simulate a Fivetran sync.
     print("Connector run complete.")

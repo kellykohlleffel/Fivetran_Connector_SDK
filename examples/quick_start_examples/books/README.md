@@ -1,17 +1,24 @@
-# Fivetran_Connector_SDK
+# Fivetran_Connector_SDK: Books Data
  ## Quickly build a custom OpenLibrary books data connector using the Fivetran SDK
 
 [Fivetran's Connector SDK](https://fivetran.com/docs/connectors/connector-sdk) allows you to code a custom data connector using Python and deploy it as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources.
 
 This is a simple example for how to work with the fivetran_connector_sdk module. 
 
-It shows the use of a requirements.txt file and a connector that calls a publicly available API:
-
-- Book data from the OpenLibrary API
+It shows the use of a connector.py file that calls a publicly available API.
 
 It also shows how to use the logging functionality provided by fivetran_connector_sdk, by logging important steps using log.info() and log.fine()
 
 See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
+
+## Book data from the OpenLibrary API
+
+This script connects to the OpenLibrary API using the Fivetran Connector SDK. It retrieves book information such as title, author, and publication date based on a search query, and stores the data in Fivetran using the SDK's upsert operation.
+
+**Example usage**: This script can be used to demonstrate pulling book data from OpenLibrary, making it useful to better understand how the Fivetran Connector SDK works.
+
+Configuration:
+- The search term (e.g., "Python") can be provided in the configuration to customize the data retrieval and limit records.
 
 ## Quick reference bash commands for running in the VS Code terminal
 

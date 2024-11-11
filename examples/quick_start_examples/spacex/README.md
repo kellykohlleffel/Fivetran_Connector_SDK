@@ -1,17 +1,21 @@
-# Fivetran_Connector_SDK
+# Fivetran_Connector_SDK: SpaceX Launch Data
  ## Quickly build a custom SpaceX data connector using the Fivetran SDK
 
 [Fivetran's Connector SDK](https://fivetran.com/docs/connectors/connector-sdk) allows you to code a custom data connector using Python and deploy it as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources.
 
 This is a simple example for how to work with the fivetran_connector_sdk module. 
 
-It shows the use of a requirements.txt file and a connector that calls a publicly available API:
-
-- Launch data from the SpaceX API
+It shows the use of a connector.py file that calls a publicly available API.
 
 It also shows how to use the logging functionality provided by fivetran_connector_sdk, by logging important steps using log.info() and log.fine()
 
 See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
+
+## SpaceX launch data from the SpaceX API
+
+This script connects to the SpaceX API using the Fivetran Connector SDK. It retrieves information about past SpaceX launches, including mission name, launch date, rocket type, and launch site, and stores this data in Fivetran using the SDK's upsert operation.
+
+**Example usage**: This script can be used to demonstrate pulling launch data from SpaceX, making it useful for showcasing how the Fivetran Connector SDK works.
 
 ## Quick reference bash commands for running in the VS Code terminal
 
