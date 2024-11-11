@@ -13,6 +13,8 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ## SpaceX launch data from the SpaceX API
 
+[SpaceX API](https://github.com/r-spacex/SpaceX-API/tree/master/docs#rspacex-api-docs)
+
 This script connects to the SpaceX API using the Fivetran Connector SDK. It retrieves information about past SpaceX launches, including mission name, launch date, rocket type, and launch site, and stores this data in Fivetran using the SDK's upsert operation.
 
 **Example usage**: This script can be used to demonstrate pulling launch data from SpaceX, making it useful for showcasing how the Fivetran Connector SDK works.

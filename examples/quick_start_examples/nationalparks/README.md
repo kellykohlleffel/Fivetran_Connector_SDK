@@ -1,5 +1,5 @@
-# Fivetran_Connector_SDK: US National Parks Data
- ## Quickly build a custom US National Parks data connector with multiple tables using the Fivetran SDK
+# Fivetran_Connector_SDK: US National Park Data
+ ## Quickly build a custom US National Park data connector with multiple tables using the Fivetran SDK
 
 [Fivetran's Connector SDK](https://fivetran.com/docs/connectors/connector-sdk) allows you to code a custom data connector using Python and deploy it as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources.
 
@@ -11,9 +11,11 @@ It also shows how to use the logging functionality provided by fivetran_connecto
 
 See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
 
-## US National Parks data from the National Park Service API
+## US National Park data from the National Park Service API
 
-This script connects to the National Park Service (NPS) API using the Fivetran Connector SDK. It retrieves data from multiple tables on U.S. national parks, articles, fees and passes, people, and alerts. The data is stored in Fivetran using the SDK's upsert operation.
+[US National Park Service API](https://www.nps.gov/subjects/developer/api-documentation.htm)
+
+This script connects to the National Park Service (NPS) API using the Fivetran Connector SDK. It retrieves data from **multiple tables** on U.S. national parks, articles, fees and passes, people, and alerts. The data is stored in Fivetran using the SDK's upsert operation.
 
 **Example usage**: This script demonstrates pulling data from multiple tables including park, article, feespasses, people, and alerts data from the NPS API, useful for analyzing park details, alerts, fees, passes, associated articles, and historical figures.
 

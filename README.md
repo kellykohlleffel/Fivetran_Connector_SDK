@@ -13,12 +13,12 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 **APIs used in these examples**:
 
-- Book data from the OpenLibrary API
-- Meals data from TheMealsDB API
-- US National Parks data from the US National Park Service API (extracts data from multiple tables)
-- Solar system data from the Solar System OpenData API
-- SpaceX launch data from the SpaceX API
-- Weather forecast data from api.weather.gov for Cypress, TX, USA 
+- Book data from the [OpenLibrary API](https://openlibrary.org/dev/docs/api/search)
+- Meals data from [TheMealsDB API](https://www.themealdb.com/api.php)
+- US National Parks data from the [US National Park Service API](https://www.nps.gov/subjects/developer/api-documentation.htm) (extracts data from multiple tables)
+- Solar system data from the [Solar System OpenData API](https://api.le-systeme-solaire.net/en/)
+- SpaceX launch data from the [SpaceX API](https://github.com/r-spacex/SpaceX-API/tree/master/docs#rspacex-api-docs)
+- Weather forecast data from the [National Weather Service API](https://www.weather.gov/documentation/services-web-api) for Cypress, TX, USA 
 
 ## Quick reference bash commands for running in the VS Code terminal
 

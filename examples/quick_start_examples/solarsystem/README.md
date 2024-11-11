@@ -13,6 +13,8 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ## Celestial objects data from the Solar System OpenData API
 
+[Solar System OpenData API](https://api.le-systeme-solaire.net/en/)
+
 This script connects to the Solar System OpenData API using the Fivetran Connector SDK. It retrieves information about celestial objects in our Solar System, including object names, types, orbital periods, and distances from the Sun, and stores this data in Fivetran using the SDK's upsert operation.
 
 **Example usage**: This script can be used to demonstrate pulling Solar System data from the Solar System OpenData API, showcasing how the Fivetran Connector SDK works.

@@ -13,6 +13,8 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ## Book data from the OpenLibrary API
 
+[OpenLibrary API](https://openlibrary.org/dev/docs/api/search)
+
 This script connects to the OpenLibrary API using the Fivetran Connector SDK. It retrieves book information such as title, author, and publication date based on a search query, and stores the data in Fivetran using the SDK's upsert operation.
 
 **Example usage**: This script can be used to demonstrate pulling book data from OpenLibrary, making it useful to better understand how the Fivetran Connector SDK works.

@@ -13,6 +13,8 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ## Meals data from the MealsDB API
 
+[TheMealsDB API](https://www.themealdb.com/api.php)
+
 This script connects to TheMealDB API using the Fivetran Connector SDK. It retrieves information about meals, including meal name, category, cuisine, instructions, and main ingredients, and stores this data in Fivetran using the SDK's upsert operation.
 
 **Example usage**: This script can be used to demonstrate pulling meal data from TheMealDB, making it useful for showcasing how the Fivetran Connector SDK works.

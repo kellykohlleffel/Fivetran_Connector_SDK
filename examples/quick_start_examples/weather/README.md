@@ -13,6 +13,8 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ## Weather data from the National Weather Service API
 
+[National Weather Service API](https://www.weather.gov/documentation/services-web-api)
+
 This script retrieves weather forecast data for **Cypress, Texas**, including forecast period names, start and end times, and temperature. The data is stored in Fivetran using the SDK's upsert operation.
 
 **Example usage**: This script demonstrates how to pull weather forecast data from a public API, providing a straightforward example of using the Fivetran Connector SDK for syncing data.
