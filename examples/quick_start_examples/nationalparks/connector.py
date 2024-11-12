@@ -2,7 +2,7 @@
 connector.py
 
 This script connects to the National Park Service (NPS) API using the Fivetran Connector SDK.
-It retrieves data on U.S. national parks, articles, fees and passes, people, and alerts.
+It retrieves data on U.S. National Parks, articles, fees and passes, people, and alerts.
 The data is stored in Fivetran using the SDK's upsert operation.
 
 Example usage: This script demonstrates pulling park, article, feespasses, people, and alerts data from the NPS API, useful for 
