@@ -1,5 +1,5 @@
 # Fivetran_Connector_SDK: US National Park Data
- ## Quickly build a custom US National Park data connector with multiple tables using the Fivetran SDK
+ ## Quickly build a custom US National Park data connector with multiple tables using the Fivetran Connector SDK
 
 [Fivetran's Connector SDK](https://fivetran.com/docs/connectors/connector-sdk) allows you to code a custom data connector using Python and deploy it as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources.
 
