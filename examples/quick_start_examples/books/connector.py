@@ -10,7 +10,7 @@ OpenLibrary, making it useful to better understand how the Fivetran Connector SD
 
 Configuration:
 - The search term (e.g., "Python") can be provided in the configuration to 
-  customize the data retrieval and limit records.
+  customize the data retrieval and limit records or the default value "Agatha Christie" changed below.
 
 Requirements:
 - No additional Python libraries are required, as `requests` and the 
