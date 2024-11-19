@@ -32,6 +32,11 @@ cd examples/quick_start_examples/spacex
 ```
 python connector.py
 ```
+### NEW! Deploy the connector to Fivetran
+```
+./deploy.sh
+```
+
 ### Deploy the connector to Fivetran
 ```
 fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --connection <CONNECTION-NAME>
