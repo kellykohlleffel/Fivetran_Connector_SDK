@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Find config.json by searching up through parent directories
 CONFIG_PATH=$(pwd)
 while [[ "$CONFIG_PATH" != "/" ]]; do
