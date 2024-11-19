@@ -3,8 +3,12 @@ venv/
 .venv/
 
 # Ignore cache files
-__pycache__/
+**pycache**/
 *.log
 
 # Ignore SQLite database used for testing
 files/warehouse.db
+
+# Ignore config files
+config.json
+config.template.json
