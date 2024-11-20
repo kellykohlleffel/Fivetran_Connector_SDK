@@ -32,12 +32,19 @@ cd examples/quick_start_examples/spacex
 ```
 python connector.py
 ```
-### NEW! Deploy the connector to Fivetran
+
+### NEW! Make the deploy.sh file executable and deploy to Fivetran with prompts for Destination Name and Connector Name
+
+* You will be prompted for the **Destination Name** and the **Connector Name**
+
+* Currently the code is only using a single Fivetran account for testing purposes - the account is **MDS_DATABRICKS_HOL**
+
 ```
-./deploy.sh
+chmod +x files/deploy.sh
+./files/deploy.sh
 ```
 
-### Deploy the connector to Fivetran
+### OLD: Deploy the connector to Fivetran
 ```
 fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --connection <CONNECTION-NAME>
 ```
