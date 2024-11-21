@@ -9,8 +9,16 @@ while [[ "$CONFIG_PATH" != "/" ]]; do
     CONFIG_PATH=$(dirname "$CONFIG_PATH")
 done
 
-# Read API key from config.json
-API_KEY=$(jq -r '.fivetran.api_keys.MDS_DATABRICKS_HOL' "$CONFIG_PATH/config.json")
+# Prompt for account name
+read -p "Enter Fivetran Account Name: " ACCOUNT_NAME
+
+# Read API key from config.json based on account name
+API_KEY=$(jq -r ".fivetran.api_keys.$ACCOUNT_NAME" "$CONFIG_PATH/config.json")
+
+if [ "$API_KEY" == "null" ]; then
+    echo "Error: Account name not found in config.json"
+    exit 1
+fi
 
 # Prompt for destination name
 read -p "Enter destination name: " DESTINATION_NAME
@@ -20,7 +28,7 @@ read -p "Enter connection name: " CONNECTION_NAME
 
 # Set defaults if empty
 if [ -z "$DESTINATION_NAME" ]; then
-    DESTINATION_NAME="ADLS_UNITY_CATALOG"
+    DESTINATION_NAME="MDS_DATABRICKS_HOL"
     echo "Using default destination name: $DESTINATION_NAME"
 fi
 
