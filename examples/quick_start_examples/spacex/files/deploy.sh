@@ -9,8 +9,8 @@ while [[ "$CONFIG_PATH" != "/" ]]; do
     CONFIG_PATH=$(dirname "$CONFIG_PATH")
 done
 
-# Prompt for account name
-read -p "Enter Fivetran Account Name [MDS_DATABRICKS_HOL]: " ACCOUNT_NAME
+# Prompt for the Fivetran Account Name
+read -p "Enter your Fivetran Account Name [MDS_DATABRICKS_HOL]: " ACCOUNT_NAME
 ACCOUNT_NAME=${ACCOUNT_NAME:-"MDS_DATABRICKS_HOL"}
 
 # Read API key from config.json based on account name
@@ -21,12 +21,12 @@ if [ "$API_KEY" == "null" ]; then
     exit 1
 fi
 
-# Prompt for destination name
-read -p "Enter destination name [ADLS_UNITY_CATALOG]: " DESTINATION_NAME
+# Prompt for the Fivetran Destination Name
+read -p "Enter your Fivetran Destination Name [ADLS_UNITY_CATALOG]: " DESTINATION_NAME
 DESTINATION_NAME=${DESTINATION_NAME:-"ADLS_UNITY_CATALOG"}
 
-# Prompt for connection name
-read -p "Enter connection name [default-connection]: " CONNECTION_NAME
+# Prompt for the Fivetran Connector Name
+read -p "Enter a unique Fivetran Connector Name [default-connection]: " CONNECTION_NAME
 CONNECTION_NAME=${CONNECTION_NAME:-"default-connection"}
 
 fivetran deploy --api-key "$API_KEY" --destination "$DESTINATION_NAME" --connection "$CONNECTION_NAME"
