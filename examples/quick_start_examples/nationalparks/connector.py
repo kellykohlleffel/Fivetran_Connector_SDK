@@ -18,13 +18,24 @@ Requirements:
   `fivetran_connector_sdk` are assumed to be pre-installed.
 """
 
+import json
+import os
 import requests as rq  # Import requests for making HTTP requests, aliased as rq.
 from fivetran_connector_sdk import Connector  # Connector class to set up the Fivetran connector.
 from fivetran_connector_sdk import Logging as log  # Logging functionality to log key steps.
 from fivetran_connector_sdk import Operations as op  # Operations class for Fivetran data operations.
 
+def get_api_key():
+    """Get NPS API key from config.json"""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
+    config_path = os.path.join(root_dir, 'config.json')
+    with open(config_path) as f:
+        config = json.load(f)
+    return config['apis']['nps']['api_key']
+
 # Set the API key and record retrieval limit once, and they will be used for all API requests.
-API_KEY = "3qpAYIbdhT09TfPf9vf0MPoLrk9vrdK8Fn9BL0vt"  # Replace with your actual API key
+API_KEY = get_api_key()  # Replace with your actual API key
 LIMIT = 3  # Set the maximum number of records retrieved per table
 
 # Define the schema function to configure the schema your connector delivers.

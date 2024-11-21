@@ -20,8 +20,7 @@ This script connects to the National Park Service (NPS) API using the Fivetran C
 **Example usage**: This script demonstrates pulling data from multiple tables including park, article, feespasses, people, and alerts data from the NPS API, useful for analyzing park details, alerts, fees, passes, associated articles, and historical figures.
 
 **Configuration**:
-- An API key is required for accessing the NPS API. Replace 'YOUR_API_KEY' in the `API_KEY` variable
-  with your actual API key.
+- An API key is required for accessing the NPS API. Update your config.json file with your NPS API key.
 - Set the `LIMIT` variable to control the number of records retrieved per table.
 
 ## Quick reference bash commands for running in the VS Code terminal
