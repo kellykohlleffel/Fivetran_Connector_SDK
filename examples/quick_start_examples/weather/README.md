@@ -19,7 +19,7 @@ This script retrieves weather forecast data for **Cypress, Texas**, including we
 
 **Example usage**: This script demonstrates how to pull weather forecast data from a public API, providing a straightforward example of using the Fivetran Connector SDK for syncing data.
 
-## Quick reference bash commands for running in the VS Code terminal
+## Quick reference bash commands for running in your IDE (e.g. VS Code terminal)
 
 ### From this path: 
 (.venv) kelly.kohlleffel@kelly Fivetran_Connector_SDK %

@@ -20,7 +20,7 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 - SpaceX launch data from the [SpaceX API](https://github.com/r-spacex/SpaceX-API/tree/master/docs#rspacex-api-docs)
 - Weather forecast data from the [National Weather Service API](https://www.weather.gov/documentation/services-web-api) for Cypress, TX, USA 
 
-## Quick reference bash commands for running in the VS Code terminal
+## Quick reference bash commands for running in your IDE (e.g. VS Code terminal)
 
 ### From this path: 
 (.venv) kelly.kohlleffel@kelly Fivetran_Connector_SDK %

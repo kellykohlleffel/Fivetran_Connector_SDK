@@ -22,7 +22,7 @@ This script connects to the OpenLibrary API using the Fivetran Connector SDK. It
 **Configuration**:
 - A **search term** (e.g., "Python, SQL, History, etc.") can be provided in the configuration to customize the data retrieval and limit records.
 
-## Quick reference bash commands for running in the VS Code terminal
+## Quick reference bash commands for running in your IDE (e.g. VS Code terminal)
 
 ### From this path: 
 (.venv) kelly.kohlleffel@kelly Fivetran_Connector_SDK %

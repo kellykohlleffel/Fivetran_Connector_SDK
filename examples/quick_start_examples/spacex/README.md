@@ -19,7 +19,7 @@ This script connects to the SpaceX API using the Fivetran Connector SDK. It retr
 
 **Example usage**: This script can be used to demonstrate pulling launch data from SpaceX, making it useful for showcasing how the Fivetran Connector SDK works.
 
-## Quick reference bash commands for running in the VS Code terminal
+## Quick reference bash commands for running in your IDE (e.g. VS Code terminal)
 
 ### From this path: 
 (.venv) kelly.kohlleffel@kelly Fivetran_Connector_SDK %

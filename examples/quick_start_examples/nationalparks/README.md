@@ -23,7 +23,7 @@ This script connects to the National Park Service (NPS) API using the Fivetran C
 - An API key is required for accessing the NPS API. Update your config.json file with your NPS API key.
 - Set the `LIMIT` variable to control the number of records retrieved per table.
 
-## Quick reference bash commands for running in the VS Code terminal
+## Quick reference bash commands for running in your IDE (e.g. VS Code terminal)
 
 ### From this path: 
 (.venv) kelly.kohlleffel@kelly Fivetran_Connector_SDK %
