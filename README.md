@@ -34,9 +34,26 @@ cd examples/quick_start_examples/weather
 python connector.py
 ```
 ### Deploy the connector to Fivetran
+
+This repo uses a **deploy.sh** file to prompt for the following:
+* Fivetran Account Name (this references an API key in the config.json file that is associated with the Fivetran Account Name input)
+* Fivetran Destination Name
+* Fivetran Connector Name
+
+For demo purposes, there is a default Fivetran account (in brackets) and default Fivetran destination. Simply clicking ENTER will use those defaults. A Fivetran connector name is required.
+
+* You will be prompted for the **Fivetran Account Name** **Fivetran Destination Name** and a unique **Fivetran Connector Name**
+
+```
+chmod +x files/deploy.sh
+./files/deploy.sh
+```
+
+### For reference, this is the Fivetran deployment script that runs in the deploy.sh file when executed.
 ```
 fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --connection <CONNECTION-NAME>
 ```
+
 ## Alternatively: 
 
 ### Ensure the directory exists
@@ -60,6 +77,22 @@ pip install -r requirements.txt
 python connector.py
 ```
 ### Deploy the connector to Fivetran
+
+This repo uses a **deploy.sh** file to prompt for the following:
+* Fivetran Account Name (this references an API key in the config.json file that is associated with the Fivetran Account Name input)
+* Fivetran Destination Name
+* Fivetran Connector Name
+
+For demo purposes, there is a default Fivetran account (in brackets) and default Fivetran destination. Simply clicking ENTER will use those defaults. A Fivetran connector name is required.
+
+* You will be prompted for the **Fivetran Account Name** **Fivetran Destination Name** and a unique **Fivetran Connector Name**
+
+```
+chmod +x files/deploy.sh
+./files/deploy.sh
+```
+
+### For reference, this is the Fivetran deployment script that runs in the deploy.sh file when executed.
 ```
 fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --connection <CONNECTION-NAME>
 ```
