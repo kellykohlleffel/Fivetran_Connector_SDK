@@ -9,6 +9,12 @@ while [[ "$CONFIG_PATH" != "/" ]]; do
     CONFIG_PATH=$(dirname "$CONFIG_PATH")
 done
 
+# Get the NPS API key from config.json
+NPS_API_KEY=$(jq -r '.apis.nps.api_key' "$CONFIG_PATH/config.json")
+
+# Create configuration.json in the current directory
+echo "{\"nps_api_key\": \"$NPS_API_KEY\"}" > configuration.json
+
 # Prompt for the Fivetran Account Name
 read -p "Enter your Fivetran Account Name [MDS_DATABRICKS_HOL]: " ACCOUNT_NAME
 ACCOUNT_NAME=${ACCOUNT_NAME:-"MDS_DATABRICKS_HOL"}
@@ -29,4 +35,8 @@ DESTINATION_NAME=${DESTINATION_NAME:-"ADLS_UNITY_CATALOG"}
 read -p "Enter a unique Fivetran Connector Name [default-connection]: " CONNECTION_NAME
 CONNECTION_NAME=${CONNECTION_NAME:-"default-connection"}
 
+# Deploy to Fivetran
 fivetran deploy --api-key "$API_KEY" --destination "$DESTINATION_NAME" --connection "$CONNECTION_NAME"
+
+# Clean up - remove the temporary configuration.json
+rm configuration.json

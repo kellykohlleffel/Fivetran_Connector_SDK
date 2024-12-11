@@ -20,25 +20,56 @@ Requirements:
 
 import json
 import os
-import requests as rq  # Import requests for making HTTP requests, aliased as rq.
-from fivetran_connector_sdk import Connector  # Connector class to set up the Fivetran connector.
-from fivetran_connector_sdk import Logging as log  # Logging functionality to log key steps.
-from fivetran_connector_sdk import Operations as op  # Operations class for Fivetran data operations.
+import time
+from datetime import datetime, timedelta
+import requests as rq
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+from fivetran_connector_sdk import Connector
+from fivetran_connector_sdk import Logging
+from fivetran_connector_sdk import Operations as op
+
+def create_retry_session():
+    """Create a requests session with retry logic"""
+    session = rq.Session()
+    retries = Retry(
+        total=3,
+        backoff_factor=1,
+        status_forcelist=[408, 429, 500, 502, 503, 504]
+    )
+    session.mount('https://', HTTPAdapter(max_retries=retries))
+    return session
 
 def get_api_key():
-    """Get NPS API key from config.json"""
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
-    config_path = os.path.join(root_dir, 'config.json')
-    with open(config_path) as f:
-        config = json.load(f)
-    return config['apis']['nps']['api_key']
+    """Get NPS API key from configuration"""
+    try:
+        # First try local configuration.json (Fivetran deployment)
+        local_config_path = os.path.join(os.path.dirname(__file__), 'configuration.json')
+        if os.path.exists(local_config_path):
+            with open(local_config_path) as f:
+                config = json.load(f)
+                if config.get('nps_api_key'):
+                    return config['nps_api_key']
 
-# Set the API key and record retrieval limit once, and they will be used for all API requests.
-API_KEY = get_api_key()  # Replace with your actual API key
-LIMIT = 3  # Set the maximum number of records retrieved per table
+        # Fallback to config.json in root (local development)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
+        config_path = os.path.join(root_dir, 'config.json')
+        with open(config_path) as f:
+            config = json.load(f)
+        return config['apis']['nps']['api_key']
+    except Exception as e:
+        Logging.info(f"Error reading configuration: {str(e)}")
+        raise
 
-# Define the schema function to configure the schema your connector delivers.
+def get_default_state():
+    """Return default state with timestamps 30 days ago"""
+    default_date = (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return {
+        "articles_last_sync": default_date,
+        "alerts_last_sync": default_date
+    }
+
 def schema(configuration: dict):
     """
     Define the table schemas that Fivetran will use.
@@ -115,227 +146,189 @@ def schema(configuration: dict):
         }
     ]
 
-# Define the update function, which is called by Fivetran during each sync.
+def make_api_request(session, endpoint, params):
+    """Centralized API request handling with error handling and logging"""
+    try:
+        response = session.get(endpoint, params=params, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except rq.exceptions.RequestException as e:
+        Logging.info(f"API request failed for {endpoint}: {str(e)}")
+        if hasattr(response, 'status_code') and response.status_code == 429:
+            time.sleep(60)
+            return make_api_request(session, endpoint, params)
+        return {"data": [], "total": 0}
+
 def update(configuration: dict, state: dict):
-    """
-    Retrieve data from the NPS API and send it to Fivetran.
+    """Retrieve data from the NPS API."""
+    session = create_retry_session()
+    API_KEY = get_api_key()  # Remove the configuration parameter here
+    LIMIT = 50
 
-    Args:
-        configuration (dict): A dictionary containing configuration settings for the connector.
-        state (dict): A dictionary containing the last sync state.
+    # Initialize or get state
+    if not state:
+        state = get_default_state()
     
-    Yields:
-        op.upsert: An upsert operation for each record.
-        op.checkpoint: A checkpoint operation to save the updated state.
-    """
-    
-    # Fetch and yield parks data
-    endpoint_parks = "https://developer.nps.gov/api/v1/parks"
-    params_parks = {
-        "api_key": API_KEY,
-        "limit": LIMIT
-    }
-    
-    response_parks = rq.get(endpoint_parks, params=params_parks)
-    
-    if response_parks.status_code == 200:
-        data_parks = response_parks.json()
-        parks = data_parks.get("data", [])
-        log.info(f"Number of parks retrieved: {len(parks)}")
-
-        for park in parks:
-            park_id = park.get("id", "Unknown ID")
-            name = park.get("fullName", "No Name")
-            description = park.get("description", "No Description")
-            state = ", ".join(park.get("states", []))
-            latitude = park.get("latitude", None)
-            longitude = park.get("longitude", None)
-            activities = ", ".join(activity["name"] for activity in park.get("activities", []))
-
-            yield op.upsert(
-                table="parks",
-                data={
-                    "park_id": park_id,
-                    "name": name,
-                    "description": description,
-                    "state": state,
-                    "latitude": float(latitude) if latitude else None,
-                    "longitude": float(longitude) if longitude else None,
-                    "activities": activities,
-                }
-            )
-    else:
-        log.error(f"Parks API request failed with status code {response_parks.status_code}")
-
-    # Fetch and yield articles data
-    endpoint_articles = "https://developer.nps.gov/api/v1/articles"
-    params_articles = {
-        "api_key": API_KEY,
-        "limit": LIMIT
-    }
-    
-    response_articles = rq.get(endpoint_articles, params=params_articles)
-    
-    if response_articles.status_code == 200:
-        data_articles = response_articles.json()
-        articles = data_articles.get("data", [])
-        log.info(f"Number of articles retrieved: {len(articles)}")
-
-        for article in articles:
-            article_id = article.get("id", "Unknown ID")
-            title = article.get("title", "No Title")
-            url = article.get("url", "")
-            related_parks = [related_park.get("parkCode", "") for related_park in article.get("relatedParks", [])]
-            park_names = [related_park.get("fullName", "") for related_park in article.get("relatedParks", [])]
-            states = [related_park.get("states", "") for related_park in article.get("relatedParks", [])]
-            listing_description = article.get("listingDescription", "")
-            date = article.get("date", "")
-
-            yield op.upsert(
-                table="articles",
-                data={
-                    "article_id": article_id,
-                    "title": title,
-                    "url": url,
-                    "related_parks": ", ".join(related_parks),
-                    "park_names": ", ".join(park_names),
-                    "states": ", ".join(states),
-                    "listing_description": listing_description,
-                    "date": date,
-                }
-            )
-    else:
-        log.error(f"Articles API request failed with status code {response_articles.status_code}")
-
-    # Fetch and yield fees and passes data
-    endpoint_feespasses = "https://developer.nps.gov/api/v1/parks"
-    params_feespasses = {
+    base_params = {
         "api_key": API_KEY,
         "limit": LIMIT
     }
 
-    response_feespasses = rq.get(endpoint_feespasses, params=params_feespasses)
-    
-    if response_feespasses.status_code == 200:
-        data_feespasses = response_feespasses.json()
-        parks = data_feespasses.get("data", [])
-        log.info(f"Number of parks with fees and passes retrieved: {len(parks)}")
-
-        for park in parks:
-            park_id = park.get("id", "Unknown ID")
-            fees = park.get("entranceFees", [])
-            passes = park.get("entrancePasses", [])
-
-            # Process entrance fees
-            for fee in fees:
+    try:
+        # Parks and related fees/passes
+        parks_response = make_api_request(session, "https://developer.nps.gov/api/v1/parks", base_params)
+        parks_data = parks_response.get("data", [])
+        
+        Logging.info(f"Retrieved {len(parks_data)} parks")
+        
+        for park in parks_data:
+            try:
+                park_id = park.get("id", "Unknown ID")
+                
+                # Parks table
                 yield op.upsert(
-                    table="feespasses",
+                    table="parks",
                     data={
-                        "pass_id": fee.get("id", "Unknown ID"),
                         "park_id": park_id,
-                        "title": fee.get("title", "No Title"),
-                        "cost": float(fee.get("cost", 0)),
-                        "description": fee.get("description", "No Description"),
-                        "valid_for": fee.get("validFor", ""),
+                        "name": park.get("fullName", "No Name"),
+                        "description": park.get("description", "No Description"),
+                        "state": ", ".join(park.get("states", [])),
+                        "latitude": float(park.get("latitude")) if park.get("latitude") else None,
+                        "longitude": float(park.get("longitude")) if park.get("longitude") else None,
+                        "activities": ", ".join(activity["name"] for activity in park.get("activities", [])),
                     }
                 )
 
-            # Process entrance passes
-            for pass_item in passes:
+                # Process fees and passes
+                for fee in park.get("entranceFees", []):
+                    try:
+                        yield op.upsert(
+                            table="feespasses",
+                            data={
+                                "pass_id": fee.get("id", "Unknown ID"),
+                                "park_id": park_id,
+                                "title": fee.get("title", "No Title"),
+                                "cost": float(fee.get("cost", 0)),
+                                "description": fee.get("description", "No Description"),
+                                "valid_for": fee.get("validFor", ""),
+                            }
+                        )
+                    except Exception as e:
+                        Logging.info(f"Error processing fee for park {park_id}: {str(e)}")
+                        continue
+
+                for pass_item in park.get("entrancePasses", []):
+                    try:
+                        yield op.upsert(
+                            table="feespasses",
+                            data={
+                                "pass_id": pass_item.get("id", "Unknown ID"),
+                                "park_id": park_id,
+                                "title": pass_item.get("title", "No Title"),
+                                "cost": float(pass_item.get("cost", 0)),
+                                "description": pass_item.get("description", "No Description"),
+                                "valid_for": pass_item.get("validFor", ""),
+                            }
+                        )
+                    except Exception as e:
+                        Logging.info(f"Error processing pass for park {park_id}: {str(e)}")
+                        continue
+
+            except Exception as e:
+                Logging.info(f"Error processing park {park_id}: {str(e)}")
+                continue
+
+        # People table
+        people_response = make_api_request(session, "https://developer.nps.gov/api/v1/people", base_params)
+        people_data = people_response.get("data", [])
+        
+        Logging.info(f"Retrieved {len(people_data)} people")
+        
+        for person in people_data:
+            try:
                 yield op.upsert(
-                    table="feespasses",
+                    table="people",
                     data={
-                        "pass_id": pass_item.get("id", "Unknown ID"),
-                        "park_id": park_id,
-                        "title": pass_item.get("title", "No Title"),
-                        "cost": float(pass_item.get("cost", 0)),
-                        "description": pass_item.get("description", "No Description"),
-                        "valid_for": pass_item.get("validFor", ""),
+                        "person_id": person.get("id", "Unknown ID"),
+                        "name": person.get("title", "No Name"),
+                        "title": person.get("listingDescription", "No Title"),
+                        "description": person.get("listingDescription", "No Description"),
+                        "url": person.get("url", ""),
+                        "related_parks": ", ".join(park["parkCode"] for park in person.get("relatedParks", [])),
                     }
                 )
-    else:
-        log.error(f"Fees and Passes API request failed with status code {response_feespasses.status_code}")
+            except Exception as e:
+                Logging.info(f"Error processing person {person.get('id', 'Unknown')}: {str(e)}")
+                continue
 
-    # Fetch and yield people data
-    endpoint_people = "https://developer.nps.gov/api/v1/people"
-    params_people = {
-        "api_key": API_KEY,
-        "limit": LIMIT
-    }
+        # Articles - limited to most recent 50
+        articles_response = make_api_request(session, "https://developer.nps.gov/api/v1/articles", base_params)
+        articles_data = articles_response.get("data", [])
+        
+        Logging.info(f"Retrieved {len(articles_data)} articles")
+        
+        for article in articles_data:
+            try:
+                article_date = article.get("lastIndexedDate", "")
+                if article_date > state["articles_last_sync"]:
+                    yield op.upsert(
+                        table="articles",
+                        data={
+                            "article_id": article.get("id", "Unknown ID"),
+                            "title": article.get("title", "No Title"),
+                            "url": article.get("url", ""),
+                            "related_parks": ", ".join(park.get("parkCode", "") for park in article.get("relatedParks", [])),
+                            "park_names": ", ".join(park.get("fullName", "") for park in article.get("relatedParks", [])),
+                            "states": ", ".join(park.get("states", "") for park in article.get("relatedParks", [])),
+                            "listing_description": article.get("listingDescription", ""),
+                            "date": article_date,
+                        }
+                    )
+            except Exception as e:
+                Logging.info(f"Error processing article {article.get('id', 'Unknown')}: {str(e)}")
+                continue
 
-    response_people = rq.get(endpoint_people, params=params_people)
-    
-    if response_people.status_code == 200:
-        data_people = response_people.json()
-        people = data_people.get("data", [])
-        log.info(f"Number of people retrieved: {len(people)}")
+        # Update articles last sync time
+        state["articles_last_sync"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        for person in people:
-            person_id = person.get("id", "Unknown ID")
-            name = person.get("title", "No Name")
-            title = person.get("listingDescription", "No Title")
-            description = person.get("listingDescription", "No Description")
-            url = person.get("url", "")
-            related_parks = ", ".join(park["parkCode"] for park in person.get("relatedParks", []))
+        # Alerts - limited to most recent 50
+        alerts_response = make_api_request(session, "https://developer.nps.gov/api/v1/alerts", base_params)
+        alerts_data = alerts_response.get("data", [])
+        
+        Logging.info(f"Retrieved {len(alerts_data)} alerts")
+        
+        for alert in alerts_data:
+            try:
+                alert_date = alert.get("lastIndexedDate", "")
+                if alert_date > state["alerts_last_sync"]:
+                    yield op.upsert(
+                        table="alerts",
+                        data={
+                            "alert_id": alert.get("id", "Unknown ID"),
+                            "park_id": alert.get("parkCode", ""),
+                            "title": alert.get("title", "No Title"),
+                            "description": alert.get("description", "No Description"),
+                            "category": alert.get("category", "No Category"),
+                            "url": alert.get("url", ""),
+                        }
+                    )
+            except Exception as e:
+                Logging.info(f"Error processing alert {alert.get('id', 'Unknown')}: {str(e)}")
+                continue
 
-            yield op.upsert(
-                table="people",
-                data={
-                    "person_id": person_id,
-                    "name": name,
-                    "title": title,
-                    "description": description,
-                    "url": url,
-                    "related_parks": related_parks,
-                }
-            )
-    else:
-        log.error(f"People API request failed with status code {response_people.status_code}")
+        # Update alerts last sync time
+        state["alerts_last_sync"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    # Fetch and yield alerts data
-    endpoint_alerts = "https://developer.nps.gov/api/v1/alerts"
-    params_alerts = {
-        "api_key": API_KEY,
-        "limit": LIMIT
-    }
+    except Exception as e:
+        Logging.info(f"Major error during sync: {str(e)}")
+        raise
 
-    response_alerts = rq.get(endpoint_alerts, params=params_alerts)
-    
-    if response_alerts.status_code == 200:
-        data_alerts = response_alerts.json()
-        alerts = data_alerts.get("data", [])
-        log.info(f"Number of alerts retrieved: {len(alerts)}")
+    yield op.checkpoint(state=state)
 
-        for alert in alerts:
-            alert_id = alert.get("id", "Unknown ID")
-            park_id = alert.get("parkCode", "")
-            title = alert.get("title", "No Title")
-            description = alert.get("description", "No Description")
-            category = alert.get("category", "No Category")
-            url = alert.get("url", "")
-
-            yield op.upsert(
-                table="alerts",
-                data={
-                    "alert_id": alert_id,
-                    "park_id": park_id,
-                    "title": title,
-                    "description": description,
-                    "category": category,
-                    "url": url,
-                }
-            )
-    else:
-        log.error(f"Alerts API request failed with status code {response_alerts.status_code}")
-
-    # Save checkpoint state if needed (this API does not use a cursor-based sync).
-    yield op.checkpoint(state={})
-
-# Create the connector object for Fivetran.
+# Create the connector object for Fivetran
 connector = Connector(update=update, schema=schema)
 
-# Run the connector in debug mode
 if __name__ == "__main__":
-    print("Running the NPS connector (Parks, Articles, FeesPasses, People, and Alerts tables)...")
-    connector.debug()  # Run the connector in debug mode to simulate a Fivetran sync.
+    print("Running the NPS connector...")
+    connector.debug()
     print("Connector run complete.")

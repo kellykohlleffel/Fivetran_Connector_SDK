@@ -64,7 +64,7 @@ cd ~/Documents/Github/Fivetran_Connector_SDK
 ```
 ### Navigate up one level from weather to nationalparks, for example
 ```
-cd ../nationalparks
+cd examples/quick_start_examples/weather
 ```
 ### Ensure the directory exists
 ```
