@@ -12,3 +12,4 @@ files/warehouse.db
 # Ignore config files
 config.json
 config.template.json
+files/nps_config.json
