@@ -19,6 +19,7 @@ fi
 # Prompt for the Fivetran Account Name
 read -p "Enter your Fivetran Account Name [MDS_DATABRICKS_HOL]: " ACCOUNT_NAME
 ACCOUNT_NAME=${ACCOUNT_NAME:-"MDS_DATABRICKS_HOL"}
+echo "Preparing your Fivetran Account deployment configuration..."
 
 # Read API key from config.json based on account name
 API_KEY=$(jq -r ".fivetran.api_keys.$ACCOUNT_NAME" "$CONFIG_FILE")
@@ -41,22 +42,24 @@ NPS_API_KEY=$(jq -r '.apis.nps.api_key' "$NPS_CONFIG_FILE")
 
 # Write a flat configuration with the API key
 echo "{
-    \"api_key\": \"$NPS_API_KEY\"
+    \"api_key\": \"[REDACTED]\"
 }" > "$TEMP_CONFIG_FILE"
 
 # Prompt for the Fivetran Destination Name
 read -p "Enter your Fivetran Destination Name [ADLS_UNITY_CATALOG]: " DESTINATION_NAME
 DESTINATION_NAME=${DESTINATION_NAME:-"ADLS_UNITY_CATALOG"}
+echo "Preparing your Fivetran Destination deployment configuration..."
 
 # Prompt for the Fivetran Connector Name
 read -p "Enter a unique Fivetran Connector Name [default-connection]: " CONNECTION_NAME
 CONNECTION_NAME=${CONNECTION_NAME:-"default-connection"}
-
-echo "Debug: Temporary Configuration File Contents:"
-cat "$TEMP_CONFIG_FILE"
+echo "Preparing your Fivetran Connector deployment configuration..."
 
 # Validate JSON
-jq empty "$TEMP_CONFIG_FILE" || echo "JSON validation failed"
+if ! jq empty "$TEMP_CONFIG_FILE" > /dev/null 2>&1; then
+    echo "JSON validation failed"
+    exit 1
+fi
 
 # Deploy with the temporary configuration file
 fivetran deploy --api-key "$API_KEY" --destination "$DESTINATION_NAME" --connection "$CONNECTION_NAME" --configuration "$TEMP_CONFIG_FILE"
@@ -69,8 +72,8 @@ rm "$TEMP_CONFIG_FILE"
 
 # Confirm deployment success
 if [[ $DEPLOY_RESULT -eq 0 ]]; then
-    echo "Deployment succeeded!"
+    echo "Fivetran Connector SDK deployment succeeded!"
 else
-    echo "Deployment failed."
+    echo "Fivetran Connector SDK Deployment failed."
     exit 1
 fi
