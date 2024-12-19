@@ -28,6 +28,22 @@ if [ "$API_KEY" == "null" ]; then
     exit 1
 fi
 
+# Read NPS API key from nps_config.json
+NPS_CONFIG_FILE="$(pwd)/files/nps_config.json"
+if [[ ! -f "$NPS_CONFIG_FILE" ]]; then
+    echo "Error: NPS configuration file not found at $NPS_CONFIG_FILE"
+    exit 1
+fi
+
+# Create a temporary configuration JSON file
+TEMP_CONFIG_FILE=$(mktemp)
+NPS_API_KEY=$(jq -r '.apis.nps.api_key' "$NPS_CONFIG_FILE")
+
+# Write a flat configuration with the API key
+echo "{
+    \"api_key\": \"$NPS_API_KEY\"
+}" > "$TEMP_CONFIG_FILE"
+
 # Prompt for the Fivetran Destination Name
 read -p "Enter your Fivetran Destination Name [ADLS_UNITY_CATALOG]: " DESTINATION_NAME
 DESTINATION_NAME=${DESTINATION_NAME:-"ADLS_UNITY_CATALOG"}
@@ -36,11 +52,23 @@ DESTINATION_NAME=${DESTINATION_NAME:-"ADLS_UNITY_CATALOG"}
 read -p "Enter a unique Fivetran Connector Name [default-connection]: " CONNECTION_NAME
 CONNECTION_NAME=${CONNECTION_NAME:-"default-connection"}
 
-# Deploy with config.json
-fivetran deploy --api-key "$API_KEY" --destination "$DESTINATION_NAME" --connection "$CONNECTION_NAME" --configuration "$CONFIG_FILE"
+echo "Debug: Temporary Configuration File Contents:"
+cat "$TEMP_CONFIG_FILE"
+
+# Validate JSON
+jq empty "$TEMP_CONFIG_FILE" || echo "JSON validation failed"
+
+# Deploy with the temporary configuration file
+fivetran deploy --api-key "$API_KEY" --destination "$DESTINATION_NAME" --connection "$CONNECTION_NAME" --configuration "$TEMP_CONFIG_FILE"
+
+# Store the deployment result
+DEPLOY_RESULT=$?
+
+# Clean up the temporary configuration file
+rm "$TEMP_CONFIG_FILE"
 
 # Confirm deployment success
-if [[ $? -eq 0 ]]; then
+if [[ $DEPLOY_RESULT -eq 0 ]]; then
     echo "Deployment succeeded!"
 else
     echo "Deployment failed."
