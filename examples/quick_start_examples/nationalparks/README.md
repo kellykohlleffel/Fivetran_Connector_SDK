@@ -1,7 +1,11 @@
 # Fivetran_Connector_SDK: National Parks Service API
 
 ## Overview
-This Fivetran connector retrieves data from the [National Park Service (NPS) API](https://www.nps.gov/subjects/developer/index.htm), allowing you to sync comprehensive information about U.S. National Parks, including parks details, fees and passes, and people associated with these parks.
+This Fivetran custom connector is a simple example that uses the Fivetran Connector SDK to retrieve data from the [National Park Service (NPS) API](https://www.nps.gov/subjects/developer/index.htm), allowing you to sync comprehensive information about U.S. National Parks, including parks details, fees and passes, and people associated with these parks. 
+
+Fivetran's Connector SDK enables you to use Python to code the interaction with the NPS API data source. This example shows the use of a connector.py file that calls NPS API. From there, the connector is deployed as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources, orchestration, scaling, resyncs, and log management. In addition, Fivetran handles comprehensive writing to the destination of your choice managing retries, schema inference, security, and idempotency.
+
+See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
 
 ## Features
 - Retrieve details about U.S. National Parks

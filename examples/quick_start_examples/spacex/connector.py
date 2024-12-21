@@ -1,139 +1,303 @@
 """
 connector.py
 
-This script connects to the SpaceX API using the Fivetran Connector SDK. 
-It retrieves information about past SpaceX launches, including mission name, 
-launch date, rocket type, and launch site, and stores this data in Fivetran 
-using the SDK's upsert operation.
-
-Example usage: This script can be used to demonstrate pulling launch data 
-from SpaceX, making it useful for showcasing how the Fivetran Connector SDK works.
-
-Requirements:
-- No additional Python libraries are required, as `requests` and the 
-  `fivetran_connector_sdk` are assumed to be pre-installed.
-
-Fivetran Connector SDK Documentation:
-- Technical Reference: https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update
-- Best Practices: https://fivetran.com/docs/connectors/connector-sdk/best-practices
+This script connects to the National Park Service (NPS) API using the Fivetran Connector SDK.
+It retrieves data on U.S. National Parks, fees and passes, and people.
 """
 
-from datetime import datetime  # Import datetime for handling date conversions.
-import requests as rq  # Import requests for making HTTP requests, aliased as rq.
+import json
+import os
+import time
+from datetime import datetime
+import requests as rq
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+from fivetran_connector_sdk import Connector
+from fivetran_connector_sdk import Logging
+from fivetran_connector_sdk import Operations as op
 
-# Import required classes from fivetran_connector_sdk
-from fivetran_connector_sdk import Connector  # Connector class to set up the Fivetran connector.
-from fivetran_connector_sdk import Logging as log  # Logging functionality to log key steps.
-from fivetran_connector_sdk import Operations as op  # Operations class for Fivetran data operations.
+def create_retry_session():
+    """Create a requests session with retry logic"""
+    session = rq.Session()
+    retries = Retry(
+        total=3,
+        backoff_factor=1,
+        status_forcelist=[408, 429, 500, 502, 503, 504]
+    )
+    session.mount('https://', HTTPAdapter(max_retries=retries))
+    return session
 
-# Define the schema function to configure the schema your connector delivers.
+def get_api_key(configuration):
+    """Retrieve the API key from the configuration."""
+    try:
+        # Directly get the API key from the configuration
+        api_key = configuration.get('api_key')
+        
+        if not api_key:
+            # If not found, try the nested path
+            apis = configuration.get("apis", {})
+            nps = apis.get("nps", {})
+            api_key = nps.get("api_key")
+        
+        if not api_key:
+            raise KeyError("No API key found in configuration")
+        
+        return str(api_key)
+    
+    except Exception as e:
+        raise KeyError(f"Error retrieving API key: {str(e)}")
+
 def schema(configuration: dict):
-    """
-    Define the table schema that Fivetran will use.
-
-    Args:
-        configuration (dict): A dictionary containing configuration settings for the connector.
-    
-    Returns:
-        list: A list with schema definitions for each table to sync.
-    
-    Schema:
-    - table: "launch"
-    - primary_key: "flight_number"
-    - columns:
-        - flight_number (INT): Unique identifier for each launch.
-        - mission_name (STRING): Name of the mission.
-        - launch_date (UTC_DATETIME): Date and time of the launch.
-        - rocket_name (STRING): Name of the rocket used.
-        - launch_site (STRING): Name of the launch site.
-    """
+    """Define the table schemas for Fivetran."""
     return [
         {
-            "table": "launch",  # Table name in the destination.
-            "primary_key": ["flight_number"],  # Primary key column for deduplication.
-            "columns": {  # Columns and their data types.
-                "flight_number": "INT",  # Unique flight number for each launch.
-                "mission_name": "STRING",  # Name of the mission.
-                "launch_date": "UTC_DATETIME",  # Launch date and time.
-                "rocket_name": "STRING",  # Name of the rocket.
-                "launch_site": "STRING",  # Name of the launch site.
+            "table": "parks",
+            "primary_key": ["park_id"],
+            "columns": {
+                "park_id": "STRING",
+                "name": "STRING",
+                "description": "STRING",
+                "state": "STRING",
+                "latitude": "FLOAT",
+                "longitude": "FLOAT",
+                "activities": "STRING",
+                "designation": "STRING",
+                "last_modified": "UTC_DATETIME"
+            },
+        },
+        {
+            "table": "feespasses",
+            "primary_key": ["pass_id"],
+            "columns": {
+                "pass_id": "STRING",
+                "park_id": "STRING",
+                "park_name": "STRING",
+                "title": "STRING",
+                "cost": "FLOAT",
+                "description": "STRING",
+                "valid_for": "STRING",
+                "last_modified": "UTC_DATETIME"
+            },
+        },
+        {
+            "table": "people",
+            "primary_key": ["person_id"],
+            "columns": {
+                "person_id": "STRING",
+                "name": "STRING",
+                "title": "STRING",
+                "description": "STRING",
+                "url": "STRING",
+                "related_parks": "STRING",
+                "park_names": "STRING",
+                "last_modified": "UTC_DATETIME"
             },
         }
     ]
 
-# Define the update function, which is called by Fivetran during each sync.
+def make_api_request(session, endpoint, params):
+    """Make API request with error handling and logging"""
+    try:
+        Logging.info(f"Making request to {endpoint}")
+        response = session.get(endpoint, params=params, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except rq.exceptions.RequestException as e:
+        Logging.info(f"API request failed for {endpoint}: {str(e)}")
+        if hasattr(response, 'status_code') and response.status_code == 429:
+            Logging.info("Rate limit hit, waiting 60 seconds...")
+            time.sleep(60)
+            return make_api_request(session, endpoint, params)
+        return {"data": [], "total": 0}
+
 def update(configuration: dict, state: dict):
-    """
-    Retrieve data from the SpaceX API and send it to Fivetran.
-
-    Args:
-        configuration (dict): A dictionary containing configuration settings for the connector.
-        state (dict): A dictionary containing the last sync state, such as cursor values.
+    """Retrieve data from the NPS API."""
+    session = create_retry_session()
+    current_time = datetime.utcnow().isoformat() + "Z"
     
-    Yields:
-        op.upsert: An upsert operation for each launch record.
-        op.checkpoint: A checkpoint operation to save the updated state.
-    
-    Logic:
-    - Fetch launch data from the SpaceX API.
-    - Process each launch entry, extracting flight number, mission name, launch date, rocket name, and launch site.
-    - Skip launches that occurred before the last synced launch date.
-    - Save the latest launch date encountered to the state after each sync.
-    """
-    cursor = state.get("launch_date", "2000-01-01T00:00:00Z")  # Initialize cursor to a very old date.
+    try:
+        API_KEY = get_api_key(configuration)
+        LIMIT = 50
+        BASE_URL = "https://developer.nps.gov/api/v1"
 
-    # Fetch data from SpaceX API for past launches.
-    response = rq.get("https://api.spacexdata.com/v4/launches/past")
-    data = response.json()  # Parse the JSON response.
-    log.info(f"Number of launches retrieved: {len(data)}")  # Log the number of launches retrieved.
+        base_params = {
+            "api_key": API_KEY,
+            "limit": LIMIT
+        }
 
-    # Print table header for visual output in debug mode.
-    print("\n--- Processing and Printing Synced Data ---")
-    print(f"{'Flight Number':<15} {'Mission Name':<25} {'Launch Date':<25} {'Rocket Name':<20} {'Launch Site':<20}")
-    print("-" * 100)
+        # Print header for visual output in debug mode
+        print("\n--- Processing National Parks Data ---")
+        print(f"{'Park ID':<15} {'Name':<40} {'State':<10} {'Last Modified':<25}")
+        print("-" * 90)
 
-    # Loop through each launch in the response data.
-    for launch in data:
-        # Extract relevant details for each launch, handling missing fields.
-        flight_number = launch.get("flight_number")  # Unique flight number for the launch.
-        mission_name = launch.get("name", "Unknown Mission")  # Mission name.
-        launch_date = launch.get("date_utc")  # UTC launch date and time.
-        rocket_name = launch.get("rocket")  # Rocket ID; further details may need another API call if desired.
-        launch_site = launch.get("launchpad")  # Launch site ID; further details may need another API call.
+        # 1. Sync National Parks only
+        Logging.info("Starting parks sync")
+        parks_response = make_api_request(session, f"{BASE_URL}/parks", base_params)
+        parks_data = [park for park in parks_response.get("data", []) 
+                     if park.get("designation", "").lower().strip() == "national park"]
+        
+        Logging.info(f"Retrieved {len(parks_data)} national parks")
+        
+        # Store park names for reference
+        park_names = {park.get("id"): park.get("fullName") for park in parks_data}
+        
+        for park in parks_data:
+            try:
+                # Print for debug visibility
+                print(f"{park.get('id', 'Unknown'):<15} {park.get('fullName', 'No Name')[:39]:<40} {park.get('states', ''):<10} {current_time:<25}")
 
-        # Skip entries if the launch date is before the cursor.
-        if launch_date < cursor:
-            continue  # Skip this launch if it doesn't meet the criteria.
+                yield op.upsert(
+                    table="parks",
+                    data={
+                        "park_id": park.get("id", "Unknown ID"),
+                        "name": park.get("fullName", "No Name"),
+                        "description": park.get("description", "No Description"),
+                        "state": park.get("states", ""),
+                        "latitude": float(park.get("latitude")) if park.get("latitude") else None,
+                        "longitude": float(park.get("longitude")) if park.get("longitude") else None,
+                        "activities": json.dumps([activity["name"] for activity in park.get("activities", [])]),
+                        "designation": park.get("designation", ""),
+                        "last_modified": current_time
+                    }
+                )
+            except Exception as e:
+                Logging.info(f"Error processing park {park.get('id', 'Unknown')}: {str(e)}")
+                continue
 
-        # Print each processed row in the debug output.
-        print(f"{flight_number:<15} {mission_name:<25} {launch_date:<25} {rocket_name:<20} {launch_site:<20}")
+        # 2. Sync people
+        print("\n--- Processing People Data ---")
+        print(f"{'Person ID':<15} {'Name':<40} {'Last Modified':<25}")
+        print("-" * 80)
+        
+        Logging.info("Starting people sync")
+        people_response = make_api_request(session, f"{BASE_URL}/people", base_params)
+        people_data = people_response.get("data", [])
+        
+        Logging.info(f"Retrieved {len(people_data)} people")
+        
+        for person in people_data:
+            try:
+                print(f"{person.get('id', 'Unknown'):<15} {person.get('name', 'No Name')[:39]:<40} {current_time:<25}")
+                
+                # Filter related parks to only include National Parks
+                related_park_ids = [park.get("parkCode", "") for park in person.get("relatedParks", [])
+                                  if park.get("parkCode") in park_names]
+                related_park_names = [park_names.get(park_id, "") for park_id in related_park_ids]
+                
+                if related_park_ids:  # Only include people associated with National Parks
+                    yield op.upsert(
+                        table="people",
+                        data={
+                            "person_id": person.get("id", "Unknown ID"),
+                            "name": person.get("name", person.get("title", "No Name")),
+                            "title": person.get("listingDescription", ""),
+                            "description": person.get("description", ""),
+                            "url": person.get("url", ""),
+                            "related_parks": json.dumps(related_park_ids),
+                            "park_names": json.dumps(related_park_names),
+                            "last_modified": current_time
+                        }
+                    )
+            except Exception as e:
+                Logging.info(f"Error processing person {person.get('id', 'Unknown')}: {str(e)}")
+                continue
 
-        # Log fine-grained details for debugging.
-        log.fine(f"Flight number={flight_number}, mission_name={mission_name}")
+        # 3. Sync fees/passes
+        print("\n--- Processing Fees and Passes ---")
+        print(f"{'Pass ID':<15} {'Title':<40} {'Cost':<10} {'Last Modified':<25}")
+        print("-" * 90)
+        
+        Logging.info("Starting fees/passes sync")
+        for park in parks_data:
+            park_id = park.get("id", "Unknown ID")
+            park_name = park.get("fullName", "Unknown Park")
+            
+            # Process entrance fees
+            for fee in park.get("entranceFees", []):
+                try:
+                    print(f"{fee.get('id', 'Unknown'):<15} {fee.get('title', 'No Title')[:39]:<40} {float(fee.get('cost', 0)):<10.2f} {current_time:<25}")
+                    
+                    yield op.upsert(
+                        table="feespasses",
+                        data={
+                            "pass_id": fee.get("id", "Unknown ID"),
+                            "park_id": park_id,
+                            "park_name": park_name,
+                            "title": fee.get("title", "No Title"),
+                            "cost": float(fee.get("cost", 0)),
+                            "description": fee.get("description", ""),
+                            "valid_for": "Fee",
+                            "last_modified": current_time
+                        }
+                    )
+                except Exception as e:
+                    Logging.info(f"Error processing fee for park {park_id}: {str(e)}")
+                    continue
 
-        # Yield each launch as an upsert operation for Fivetran.
-        yield op.upsert(
-            table="launch",  # Table to which data is upserted.
-            data={
-                "flight_number": flight_number,
-                "mission_name": mission_name,
-                "launch_date": launch_date,
-                "rocket_name": rocket_name,
-                "launch_site": launch_site,
-            }
-        )
+            # Process entrance passes
+            for pass_item in park.get("entrancePasses", []):
+                try:
+                    print(f"{pass_item.get('id', 'Unknown'):<15} {pass_item.get('title', 'No Title')[:39]:<40} {float(pass_item.get('cost', 0)):<10.2f} {current_time:<25}")
+                    
+                    yield op.upsert(
+                        table="feespasses",
+                        data={
+                            "pass_id": pass_item.get("id", "Unknown ID"),
+                            "park_id": park_id,
+                            "park_name": park_name,
+                            "title": pass_item.get("title", "No Title"),
+                            "cost": float(pass_item.get("cost", 0)),
+                            "description": pass_item.get("description", ""),
+                            "valid_for": "Pass",
+                            "last_modified": current_time
+                        }
+                    )
+                except Exception as e:
+                    Logging.info(f"Error processing pass for park {park_id}: {str(e)}")
+                    continue
 
-        # Update the cursor to the latest launch date encountered.
-        cursor = max(cursor, launch_date)  # Ensure cursor holds the latest date.
+        yield op.checkpoint(state={"last_sync": current_time})
 
-    # Save the updated state with the latest launch date.
-    yield op.checkpoint(state={"launch_date": cursor})  # Save the cursor to maintain sync state.
+    except Exception as e:
+        Logging.info(f"Major error during sync: {str(e)}")
+        raise
 
-# Create the connector object for Fivetran.
+# Create the connector object
 connector = Connector(update=update, schema=schema)
 
-# Run the connector in debug mode when executing the script directly.
 if __name__ == "__main__":
-    print("Running the SpaceX connector...")
-    connector.debug()  # Run the connector in debug mode to simulate a Fivetran sync.
-    print("Connector run complete.")
+    Logging.info("Starting NPS connector debug run...")
+
+    try:
+        # Get the project root directory (where your config file exists)
+        project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        example_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Source config path (in project root)
+        source_config_path = os.path.join(example_dir, 'files', 'nps_config.json')
+        
+        # Make sure the files directory exists in the test environment
+        os.makedirs('files', exist_ok=True)
+        
+        # Destination config path (in test environment)
+        dest_config_path = os.path.join('files', 'nps_config.json')
+
+        # Copy the config file if it doesn't exist in the test environment
+        if not os.path.exists(dest_config_path):
+            Logging.info(f"Copying config from {source_config_path} to {dest_config_path}")
+            with open(source_config_path, 'r') as source:
+                config_data = json.load(source)
+                with open(dest_config_path, 'w') as dest:
+                    json.dump(config_data, dest, indent=4)
+            Logging.info("Successfully copied configuration file")
+
+        connector.debug()
+        Logging.info("Debug run complete.")
+        
+        # Clean up - remove the copied config file
+        if os.path.exists(dest_config_path):
+            os.remove(dest_config_path)
+            
+    except Exception as e:
+        Logging.info(f"Error during debug run: {str(e)}")
+        raise

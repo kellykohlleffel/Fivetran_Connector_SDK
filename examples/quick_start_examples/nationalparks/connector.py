@@ -30,20 +30,10 @@ def create_retry_session():
 def get_api_key(configuration):
     """Retrieve the API key from the configuration."""
     try:
-        # Directly get the API key from the configuration
         api_key = configuration.get('api_key')
-        
-        if not api_key:
-            # If not found, try the nested path
-            apis = configuration.get("apis", {})
-            nps = apis.get("nps", {})
-            api_key = nps.get("api_key")
-        
         if not api_key:
             raise KeyError("No API key found in configuration")
-        
         return str(api_key)
-    
     except Exception as e:
         raise KeyError(f"Error retrieving API key: {str(e)}")
 

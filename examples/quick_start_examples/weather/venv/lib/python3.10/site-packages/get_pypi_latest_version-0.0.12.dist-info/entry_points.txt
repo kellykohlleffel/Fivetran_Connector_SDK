@@ -1,0 +1,3 @@
+[console_scripts]
+get_pypi_latest_version = get_pypi_latest_version.main:main
+

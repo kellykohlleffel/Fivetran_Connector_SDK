@@ -1,15 +1,18 @@
-# Ignore Python virtual environments
-venv/
-.venv/
-
-# Ignore cache files
-**pycache**/
-*.log
-
-# Ignore SQLite database used for testing
-files/warehouse.db
-
-# Ignore config files
+# Configuration files with sensitive data
 config.json
-config.template.json
-files/nps_config.json
+configuration.json
+
+# Database files
+files/warehouse.db
+*.db
+
+# Testing and debugging files
+files/warehouse.db-journal
+*.db-journal
+
+# Python environment
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
