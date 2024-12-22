@@ -65,7 +65,12 @@ def schema(configuration: dict):
 def make_api_request(session, endpoint, params):
     """Make API request with error handling and logging"""
     try:
-        Logging.warning(f"Making request to {endpoint} with params: {params}")
+        # Create a copy of params with masked API key for logging
+        log_params = params.copy()
+        if 'api_key' in log_params:
+            log_params['api_key'] = '***'
+        
+        Logging.warning(f"Making request to {endpoint} with params: {log_params}")
         response = session.get(endpoint, params=params, timeout=30)
         response.raise_for_status()
         data = response.json()
