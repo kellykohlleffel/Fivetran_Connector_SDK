@@ -1,10 +1,3 @@
-"""
-connector.py
-
-This script connects to the National Park Service (NPS) API using the Fivetran Connector SDK.
-It retrieves data on U.S. National Parks, fees and passes, and people.
-"""
-
 import json
 import os
 import time
@@ -51,7 +44,7 @@ def schema(configuration: dict):
                 "latitude": "FLOAT",
                 "longitude": "FLOAT",
                 "activities": "STRING",
-                "designation": "STRING"  # Added to help filter National Parks
+                "designation": "STRING"
             },
         },
         {
@@ -60,24 +53,11 @@ def schema(configuration: dict):
             "columns": {
                 "pass_id": "STRING",
                 "park_id": "STRING",
-                "park_name": "STRING",  # Added common column
+                "park_name": "STRING",
                 "title": "STRING",
                 "cost": "FLOAT",
                 "description": "STRING",
                 "valid_for": "STRING",
-            },
-        },
-        {
-            "table": "people",
-            "primary_key": ["person_id"],
-            "columns": {
-                "person_id": "STRING",
-                "name": "STRING",
-                "title": "STRING",
-                "description": "STRING",
-                "url": "STRING",
-                "related_parks": "STRING",
-                "park_names": "STRING"  # Added to show associated park names
             },
         }
     ]
@@ -85,14 +65,22 @@ def schema(configuration: dict):
 def make_api_request(session, endpoint, params):
     """Make API request with error handling and logging"""
     try:
-        Logging.info(f"Making request to {endpoint}")
+        Logging.warning(f"Making request to {endpoint} with params: {params}")
         response = session.get(endpoint, params=params, timeout=30)
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        Logging.warning(f"Response total count: {len(data.get('data', []))}")
+        if len(data.get('data', [])) > 0:
+            Logging.warning("Sample of first response item:")
+            first_item = data['data'][0]
+            Logging.warning(f"Name: {first_item.get('fullName')}")
+            Logging.warning(f"Designation: {first_item.get('designation')}")
+            Logging.warning(f"Park Code: {first_item.get('parkCode')}")
+        return data
     except rq.exceptions.RequestException as e:
-        Logging.info(f"API request failed for {endpoint}: {str(e)}")
+        Logging.warning(f"API request failed for {endpoint}: {str(e)}")
         if hasattr(response, 'status_code') and response.status_code == 429:
-            Logging.info("Rate limit hit, waiting 60 seconds...")
+            Logging.warning("Rate limit hit, waiting 60 seconds...")
             time.sleep(60)
             return make_api_request(session, endpoint, params)
         return {"data": [], "total": 0}
@@ -102,26 +90,52 @@ def update(configuration: dict, state: dict):
     session = create_retry_session()
     try:
         API_KEY = get_api_key(configuration)
-        LIMIT = 50
         BASE_URL = "https://developer.nps.gov/api/v1"
-
-        base_params = {
-            "api_key": API_KEY,
-            "limit": LIMIT
-        }
-
-        # 1. Sync National Parks only
-        Logging.info("Starting parks sync")
-        parks_response = make_api_request(session, f"{BASE_URL}/parks", base_params)
-        parks_data = [park for park in parks_response.get("data", []) 
-                     if park.get("designation", "").lower().strip() == "national park"]
         
-        Logging.info(f"Retrieved {len(parks_data)} national parks")
+        # List of all National Park codes
+        park_codes = [
+            'acad', 'arch', 'badl', 'bibe', 'bisc', 'blca', 'brca', 'cany', 'care', 'cave',
+            'chis', 'coga', 'crla', 'cuva', 'dena', 'deva', 'drto', 'ever', 'gaar', 'glac',
+            'glba', 'grba', 'grca', 'grsm', 'grte', 'gumo', 'hale', 'havo', 'hosp', 'isro',
+            'jeff', 'jotr', 'kefj', 'kova', 'lacl', 'lavo', 'maca', 'meve', 'mora', 'noca',
+            'npsa', 'olym', 'pefo', 'pinn', 'redw', 'romo', 'sagu', 'seki', 'shen', 'thro',
+            'voya', 'wica', 'wrst', 'yell', 'yose', 'zion'
+        ]
         
-        # Store park names for reference
-        park_names = {park.get("id"): park.get("fullName") for park in parks_data}
+        # Get all National Parks using individual requests
+        Logging.warning("Starting main parks sync")
+        all_parks = []
         
-        for park in parks_data:
+        # Request each park individually
+        for park_code in park_codes:
+            base_params = {
+                "api_key": API_KEY,
+                "parkCode": park_code
+            }
+            
+            Logging.warning(f"Requesting park with code: {park_code}")
+            parks_response = make_api_request(session, f"{BASE_URL}/parks", base_params)
+            parks_data = parks_response.get("data", [])
+            
+            for park in parks_data:
+                designation = park.get("designation", "")
+                # Include variations of National Park designations
+                if (designation == "National Park" or
+                    designation == "National Park & Preserve" or
+                    designation == "National Parks" or
+                    "National Park" in designation):  # This will catch combined designations
+                    all_parks.append(park)
+                    Logging.warning(f"Found National Park: {park.get('fullName')} | State(s): {park.get('states', 'N/A')} | Designation: {designation}")
+            
+            # Small delay to be nice to the API
+            time.sleep(0.1)
+        
+        Logging.warning(f"Final count of National Parks: {len(all_parks)}")
+        
+        Logging.warning(f"Final count of National Parks: {len(all_parks)}")
+        
+        # Process parks
+        for park in all_parks:
             try:
                 yield op.upsert(
                     table="parks",
@@ -137,43 +151,12 @@ def update(configuration: dict, state: dict):
                     }
                 )
             except Exception as e:
-                Logging.info(f"Error processing park {park.get('id', 'Unknown')}: {str(e)}")
+                Logging.warning(f"Error processing park {park.get('id', 'Unknown')}: {str(e)}")
                 continue
 
-        # 2. Sync people associated with National Parks
-        Logging.info("Starting people sync")
-        people_response = make_api_request(session, f"{BASE_URL}/people", base_params)
-        people_data = people_response.get("data", [])
-        
-        Logging.info(f"Retrieved {len(people_data)} people")
-        
-        for person in people_data:
-            try:
-                # Filter related parks to only include National Parks
-                related_park_ids = [park.get("parkCode", "") for park in person.get("relatedParks", [])
-                                  if park.get("parkCode") in park_names]
-                related_park_names = [park_names.get(park_id, "") for park_id in related_park_ids]
-                
-                if related_park_ids:  # Only include people associated with National Parks
-                    yield op.upsert(
-                        table="people",
-                        data={
-                            "person_id": person.get("id", "Unknown ID"),
-                            "name": person.get("name", person.get("title", "No Name")),
-                            "title": person.get("listingDescription", ""),
-                            "description": person.get("description", ""),
-                            "url": person.get("url", ""),
-                            "related_parks": json.dumps(related_park_ids),
-                            "park_names": json.dumps(related_park_names)
-                        }
-                    )
-            except Exception as e:
-                Logging.info(f"Error processing person {person.get('id', 'Unknown')}: {str(e)}")
-                continue
-
-        # 3. Sync fees/passes for National Parks only
-        Logging.info("Starting fees/passes sync")
-        for park in parks_data:
+        # Sync fees/passes for National Parks
+        Logging.warning("Starting fees/passes sync")
+        for park in all_parks:
             park_id = park.get("id", "Unknown ID")
             park_name = park.get("fullName", "Unknown Park")
             
@@ -193,7 +176,7 @@ def update(configuration: dict, state: dict):
                         }
                     )
                 except Exception as e:
-                    Logging.info(f"Error processing fee for park {park_id}: {str(e)}")
+                    Logging.warning(f"Error processing fee for park {park_id}: {str(e)}")
                     continue
 
             # Process entrance passes
@@ -212,19 +195,19 @@ def update(configuration: dict, state: dict):
                         }
                     )
                 except Exception as e:
-                    Logging.info(f"Error processing pass for park {park_id}: {str(e)}")
+                    Logging.warning(f"Error processing pass for park {park_id}: {str(e)}")
                     continue
 
         yield op.checkpoint(state={})
 
     except Exception as e:
-        Logging.info(f"Major error during sync: {str(e)}")
+        Logging.warning(f"Major error during sync: {str(e)}")
         raise
 
 # Create the connector object
 connector = Connector(update=update, schema=schema)
 
 if __name__ == "__main__":
-    Logging.info("Starting NPS connector debug run...")
+    Logging.warning("Starting NPS connector debug run...")
     connector.debug()
-    Logging.info("Debug run complete.")
+    Logging.warning("Debug run complete.")
