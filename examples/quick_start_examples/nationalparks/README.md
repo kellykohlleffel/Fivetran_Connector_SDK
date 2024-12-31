@@ -107,6 +107,7 @@ nationalparks/
 │   └── *.png         # Various PNG image files
 ├── connector.py        # Main connector implementation
 ├── debug.sh           # Debug deployment script
+├── deploy.sh          # Script for Fivetran production deployment
 ├── README.md         # Project documentation
 └── spec.json         # Main specification file
 ```
@@ -120,7 +121,7 @@ Main connector implementation file that handles:
 - Schema definition for parks and fees/passes tables
 - Error handling and logging
 
-### files/configuration.json
+### configuration.json
 Configuration file containing API credentials:
 ```json
 {
@@ -128,6 +129,53 @@ Configuration file containing API credentials:
 }
 ```
 **Note**: This file is automatically copied to the files directory during debug. Do not commit this file to version control.
+
+### deploy.sh
+Script for deploying to Fivetran production:
+```bash
+#!/bin/bash
+# Find config.json by searching up through parent directories
+CONFIG_PATH=$(pwd)
+while [[ "$CONFIG_PATH" != "/" ]]; do
+    if [[ -f "$CONFIG_PATH/config.json" ]]; then
+        break
+    fi
+    CONFIG_PATH=$(dirname "$CONFIG_PATH")
+done
+
+# Prompt for the Fivetran Account Name
+read -p "Enter your Fivetran Account Name [MDS_DATABRICKS_HOL]: " ACCOUNT_NAME
+ACCOUNT_NAME=${ACCOUNT_NAME:-"MDS_DATABRICKS_HOL"}
+
+# Read API key from config.json based on account name
+API_KEY=$(jq -r ".fivetran.api_keys.$ACCOUNT_NAME" "$CONFIG_PATH/config.json")
+
+if [ "$API_KEY" == "null" ]; then
+    echo "Error: Account name not found in config.json"
+    exit 1
+fi
+
+# Prompt for the Fivetran Destination Name
+read -p "Enter your Fivetran Destination Name [ADLS_UNITY_CATALOG]: " DESTINATION_NAME
+DESTINATION_NAME=${DESTINATION_NAME:-"ADLS_UNITY_CATALOG"}
+
+# Prompt for the Fivetran Connector Name
+read -p "Enter a unique Fivetran Connector Name [default-connection]: " CONNECTION_NAME
+CONNECTION_NAME=${CONNECTION_NAME:-"default-connection"}
+
+# Deploy with configuration file
+fivetran deploy --api-key "$API_KEY" --destination "$DESTINATION_NAME" \
+                --connection "$CONNECTION_NAME" --configuration configuration.json
+```
+
+### debug.sh
+Debug script for local testing:
+```bash
+#!/bin/bash
+fivetran reset
+mkdir -p files
+fivetran debug
+```
 
 ### files/spec.json
 Generated copy of the connector specification file.
@@ -144,15 +192,6 @@ Contains documentation screenshots and images:
 - Sample output images
 - Configuration examples
 - Other visual documentation
-
-### debug.sh
-Deployment script for local testing:
-```bash
-#!/bin/bash
-fivetran reset
-mkdir -p files
-fivetran debug
-```
 
 ### spec.json
 Main specification file defining the configuration schema:
@@ -172,15 +211,6 @@ Main specification file defining the configuration schema:
         }
     }
 }
-```
-
-### debug.sh
-Deployment script for local testing:
-```bash
-#!/bin/bash
-fivetran reset
-mkdir -p files
-fivetran debug
 ```
 
 ### .gitignore
@@ -253,8 +283,28 @@ touch .gitignore
 1. Ensure your virtual environment is activated
 2. Run the debug script:
 ```bash
+chmod +x debug.sh
 ./debug.sh
 ```
+
+The debug process will:
+1. Reset any existing state
+2. Create the files directory
+3. Retrieve National Parks data
+4. Log the process details
+5. Create local database files for testing
+
+### Production Deployment
+Execute the deployment script:
+```bash
+chmod +x files/deploy.sh
+./files/deploy.sh
+```
+
+The script will:
+- Find and read your Fivetran configuration
+- Prompt for account details and deployment options
+- Deploy the connector to your Fivetran destination
 
 ### Expected Output
 The connector will:
