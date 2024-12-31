@@ -1,4 +1,4 @@
-# Fivetran_Connector_SDK: National Parks Service API
+# Fivetran_Connector_SDK: National Park Service API
 
 ## Overview
 This Fivetran custom connector is a simple example that uses the Fivetran Connector SDK to retrieve data from the [National Park Service (NPS) API](https://www.nps.gov/subjects/developer/index.htm), allowing you to sync comprehensive information about U.S. National Parks, including parks details plus fees and passes associated with these parks. 
