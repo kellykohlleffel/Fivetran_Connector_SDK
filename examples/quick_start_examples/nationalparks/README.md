@@ -1,7 +1,7 @@
 # Fivetran_Connector_SDK: National Park Service API
 
 ## Overview
-This Fivetran custom connector is a simple example that uses the Fivetran Connector SDK to retrieve data from the [National Park Service (NPS) API](https://www.nps.gov/subjects/developer/index.htm), allowing you to sync comprehensive information about U.S. National Parks, including parks details plus fees and passes associated with these parks. 
+This Fivetran custom connector is a simple example that uses the Fivetran Connector SDK to retrieve data from the [National Park Service (NPS) API](https://www.nps.gov/subjects/developer/index.htm), allowing you to sync comprehensive information about U.S. National Parks, including parks details plus fees and passes and activities associated with these parks. 
 
 Fivetran's Connector SDK enables you to use Python to code the interaction with the NPS API data source. This example shows the use of a connector.py file that calls NPS API. From there, the connector is deployed as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources, orchestration, scaling, resyncs, and log management. In addition, Fivetran handles comprehensive writing to the destination of your choice managing retries, schema inference, security, and idempotency.
 
@@ -11,6 +11,7 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 - Retrieves comprehensive data about U.S. National Parks using the NPS API
 - Includes park details such as location, description, and activities
 - Captures entrance fees and passes information with associated costs and validity periods
+- Retrieves things to do at each park
 - Implements robust error handling and retry mechanisms
 - Uses pagination to handle large data sets efficiently
 - Supports incremental syncs through state tracking
@@ -62,6 +63,32 @@ Each API response is processed with:
 - Extraction of relevant park information
 - Logging of retrieval statistics
 - Status tracking for data completeness
+
+#### Update Function Implementation
+The update function orchestrates three main data syncs:
+
+1. National Parks Sync
+- Uses a predefined list of 56 park codes for major National Parks
+- Makes individual requests per park for reliable data retrieval
+- Filters parks based on "National Park" designation variants
+- Processes core park information (location, description, activities)
+
+2. Fees and Passes Sync
+- Processes entrance fees and passes for each National Park
+- Handles both one-time fees and seasonal/annual passes
+- Links all fees/passes to their respective parks
+
+3. Things to Do Sync
+- Retrieves recommended activities for each National Park
+- Captures activity details including descriptions and accessibility info
+- Links activities to specific parks with names and states
+- Processes activity tags and durations
+
+Each sync implements:
+- Error handling with detailed logging
+- Rate limiting protection (0.1s delay between requests)
+- Data validation and cleanup
+- Safe type conversion for numerical fields
 
 ### Error Handling
 
@@ -336,6 +363,20 @@ Table containing fee and pass information:
 - cost (FLOAT)
 - description (STRING)
 - valid_for (STRING)
+
+### thingstodo
+Table containing recommended activities for National Parks:
+- activity_id (STRING, Primary Key)
+- park_id (STRING)
+- park_name (STRING)
+- park_state (STRING)
+- title (STRING)
+- short_description (STRING)
+- accessibility_information (STRING)
+- location (STRING)
+- url (STRING)
+- duration (STRING)
+- tags (STRING)
 
 ## Troubleshooting
 

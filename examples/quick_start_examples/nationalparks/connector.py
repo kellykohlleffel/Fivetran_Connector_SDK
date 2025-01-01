@@ -34,6 +34,23 @@ def schema(configuration: dict):
     """Define the table schemas for Fivetran."""
     return [
         {
+            "table": "thingstodo",
+            "primary_key": ["activity_id"],
+            "columns": {
+                "activity_id": "STRING",
+                "park_id": "STRING",
+                "park_name": "STRING",
+                "park_state": "STRING",
+                "title": "STRING",
+                "short_description": "STRING",
+                "accessibility_information": "STRING",
+                "location": "STRING",
+                "url": "STRING",
+                "duration": "STRING",
+                "tags": "STRING"
+            },
+        },
+        {
             "table": "parks",
             "primary_key": ["park_id"],
             "columns": {
@@ -137,8 +154,6 @@ def update(configuration: dict, state: dict):
         
         Logging.warning(f"Final count of National Parks: {len(all_parks)}")
         
-        Logging.warning(f"Final count of National Parks: {len(all_parks)}")
-        
         # Process parks
         for park in all_parks:
             try:
@@ -202,6 +217,40 @@ def update(configuration: dict, state: dict):
                 except Exception as e:
                     Logging.warning(f"Error processing pass for park {park_id}: {str(e)}")
                     continue
+
+        # Sync things to do for National Parks
+        Logging.warning("Starting things to do sync")
+        for park in all_parks:
+            park_id = park.get("id", "Unknown ID")
+            params = {
+                "api_key": API_KEY,
+                "parkCode": park.get("parkCode")
+            }
+            
+            thingstodo_response = make_api_request(session, f"{BASE_URL}/thingstodo", params)
+            for activity in thingstodo_response.get("data", []):
+                try:
+                    yield op.upsert(
+                        table="thingstodo",
+                        data={
+                            "activity_id": activity.get("id", "Unknown ID"),
+                            "park_id": park_id,
+                            "park_name": park.get("fullName", "Unknown Park"),
+                            "park_state": park.get("states", ""),
+                            "title": activity.get("title", "No Title"),
+                            "short_description": activity.get("shortDescription", ""),
+                            "accessibility_information": activity.get("accessibilityInformation", ""),
+                            "location": activity.get("location", ""),
+                            "url": activity.get("url", ""),
+                            "duration": activity.get("duration", ""),
+                            "tags": json.dumps(activity.get("tags", []))
+                        }
+                    )
+                except Exception as e:
+                    Logging.warning(f"Error processing activity for park {park_id}: {str(e)}")
+                    continue
+            
+            time.sleep(0.1)  # Small delay between parks
 
         yield op.checkpoint(state={})
 
