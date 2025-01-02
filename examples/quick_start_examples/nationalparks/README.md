@@ -7,6 +7,8 @@ Fivetran's Connector SDK enables you to use Python to code the interaction with 
 
 See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
 
+![National Parks Dashboard](images/fivetran_sync_nationalparks.png)
+
 ## Features
 - Retrieves comprehensive data about U.S. National Parks using the NPS API
 - Includes park details such as location, description, and activities
@@ -418,3 +420,8 @@ For issues or questions:
 1. Check the [NPS API Documentation](https://www.nps.gov/subjects/developer/api-documentation.htm)
 2. Review the [Fivetran Connector SDK Documentation](https://fivetran.com/docs/connectors/connector-sdk)
 3. Contact your organization's Fivetran administrator
+
+## Using the New NPS Dataset
+Here is an example of how the new NPS dataset can be used to build a compelling dashboard: [National Parks Dashboard in Databricks](https://github.com/kellykohlleffel/nationalparks_dashboard_in_databricks)
+
+![National Parks Dashboard](images/dbx_nationalparks_dashboard.png)
