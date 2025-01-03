@@ -3,7 +3,7 @@ Here is the complete README in copy/paste markdown format:
 # Fivetran_Connector_SDK: TheMealDB API
 
 ## Overview
-This Fivetran custom connector leverages the Fivetran Connector SDK to retrieve data from the [TheMealDB API](https://www.themealdb.com/api/json/v1/1/search.php), enabling syncing of comprehensive meal information including names, categories, cuisines, instructions, and ingredients.
+This Fivetran custom connector leverages the Fivetran Connector SDK to retrieve data from the [TheMealDB API](https://www.themealdb.com/api.php), enabling syncing of comprehensive meal information including names, categories, cuisines, instructions, and ingredients.
 
 Fivetran's Connector SDK enables you to use Python to code the interaction with TheMealDB API data source. This example shows the use of a connector.py file that calls TheMealDB API. From there, the connector is deployed as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources, orchestration, scaling, resyncs, and log management. In addition, Fivetran handles comprehensive writing to the destination of your choice managing retries, schema inference, security, and idempotency.
 
@@ -293,7 +293,7 @@ For issues or questions:
 
 ### From a Databricks notebook:
 
-1. Copy and paste into cell 1 (update your Unity Catalog and schema name)
+1. Copy and paste into cell 1 (update with your Unity Catalog and your schema name)
 ```
 df = spark.table("`ts-catalog-demo`.`meals_0103_0911`.`meal`")
 display(df.groupBy('area', 'category').count().orderBy('area'))
