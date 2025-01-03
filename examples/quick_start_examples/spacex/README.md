@@ -366,7 +366,7 @@ This visualization tells the story of SpaceX's journey from early challenges to 
 
 ### From a Databricks Notebook
 
-1. Copy and paste into cell 1 (update with your Unity Catalog and your schema name)
+1. Copy and paste into cell 2 (update with your Unity Catalog and your schema name)
 
 ```python
 from pyspark.sql.functions import year, count, sum, when, col, round
