@@ -1,13 +1,13 @@
 # Fivetran_Connector_SDK: OpenLibrary API
 
 ## Overview
-This Fivetran custom connector leverages the Fivetran Connector SDK to retrieve book information from the OpenLibrary API. It enables syncing of comprehensive book data including titles, authors, publication dates, ISBNs, and publisher information.
+This Fivetran custom connector leverages the Fivetran Connector SDK to retrieve data from the [OpenLibrary API](https://openlibrary.org/developers/api), enabling syncing of comprehensive book information including titles, authors, publication dates, ISBNs, and publisher information.
 
 Fivetran's Connector SDK enables you to use Python to code the interaction with the OpenLibrary API data source. This example shows the use of a connector.py file that calls OpenLibrary API. From there, the connector is deployed as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources, orchestration, scaling, resyncs, and log management. In addition, Fivetran handles comprehensive writing to the destination of your choice managing retries, schema inference, security, and idempotency.
 
 See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
 
-![Books Dashboard](images/snowflake_snowsight_dashboard_books1_connector_sdk.png)
+![Books Dashboard](images/fivetran_sync_status_books.png)
 
 ## Features
 - Retrieves comprehensive book data from OpenLibrary API
@@ -19,6 +19,39 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ## API Interaction
 The connector establishes interaction with the OpenLibrary API through several key components:
+
+### Core Functions
+
+#### API Request Implementation
+```python
+response = rq.get(f"https://openlibrary.org/search.json?q={search_query}")
+```
+
+- Uses simple GET request to OpenLibrary search endpoint
+- Returns JSON response with book records
+- No authentication required
+- Default timeout handling via requests library
+- Native error handling for HTTP responses
+
+#### Data Processing Functions
+
+- Extracts book details from JSON response
+- Handles missing fields with default values:
+```
+title = book.get("title", "Unknown Title")
+author = ", ".join(book.get("author_name", ["Unknown Author"]))
+publication_date = str(book.get("first_publish_year", None))
+```
+
+- Manages cursor implementation for incremental syncs
+- Provides debug logging of processed records
+
+#### Error Handling
+
+- Skips records with missing publication dates
+- Handles multiple authors via join operations
+- Validates dates against cursor for incremental updates
+- Logs processing details for debugging
 
 ### Data Retrieval Strategy
 - Uses search queries to retrieve book records
@@ -64,6 +97,7 @@ Main connector implementation file that handles:
 ### deploy.sh
 ```bash
 #!/bin/bash
+
 # Find config.json by searching up through parent directories
 CONFIG_PATH=$(pwd)
 while [[ "$CONFIG_PATH" != "/" ]]; do
@@ -73,18 +107,26 @@ while [[ "$CONFIG_PATH" != "/" ]]; do
     CONFIG_PATH=$(dirname "$CONFIG_PATH")
 done
 
-# Prompt for Fivetran configuration
+# Prompt for the Fivetran Account Name
 read -p "Enter your Fivetran Account Name [MDS_DATABRICKS_HOL]: " ACCOUNT_NAME
 ACCOUNT_NAME=${ACCOUNT_NAME:-"MDS_DATABRICKS_HOL"}
 
-# Read API key from config.json
+# Read API key from config.json based on account name
 API_KEY=$(jq -r ".fivetran.api_keys.$ACCOUNT_NAME" "$CONFIG_PATH/config.json")
 
-# Additional prompts for deployment
-read -p "Enter your Fivetran Destination Name [ADLS_UNITY_CATALOG]: " DESTINATION_NAME
-read -p "Enter a unique Fivetran Connector Name [default-connection]: " CONNECTION_NAME
+if [ "$API_KEY" == "null" ]; then
+    echo "Error: Account name not found in config.json"
+    exit 1
+fi
 
-# Deploy connector
+# Prompt for the Fivetran Destination Name
+read -p "Enter your Fivetran Destination Name [ADLS_UNITY_CATALOG]: " DESTINATION_NAME
+DESTINATION_NAME=${DESTINATION_NAME:-"ADLS_UNITY_CATALOG"}
+
+# Prompt for the Fivetran Connector Name
+read -p "Enter a unique Fivetran Connector Name [default-connection]: " CONNECTION_NAME
+CONNECTION_NAME=${CONNECTION_NAME:-"default-connection"}
+
 fivetran deploy --api-key "$API_KEY" --destination "$DESTINATION_NAME" --connection "$CONNECTION_NAME"
 ```
 
@@ -173,8 +215,8 @@ The debug process will:
 ### Production Deployment
 Execute the deployment script:
 ```bash
-chmod +x files/deploy.sh
-./files/deploy.sh
+chmod +x deploy.sh
+./deploy.sh
 ```
 
 The script will:
@@ -244,156 +286,5 @@ For issues or questions:
 2. Review the [Fivetran Connector SDK Documentation](https://fivetran.com/docs/connectors/connector-sdk)
 3. Contact your organization's Fivetran administrator
 
-## Fivetran Sync Status for the Books Custom Connector
-![National Parks Dashboard](images/fivetran_sync_status_books.png)
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Fivetran_Connector_SDK: Books Data
- ## Quickly build a custom OpenLibrary books data connector using the Fivetran Connector SDK
-
-[Fivetran's Connector SDK](https://fivetran.com/docs/connectors/connector-sdk) allows you to code a custom data connector using Python and deploy it as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources.
-
-This is a simple example for how to work with the fivetran_connector_sdk module. 
-
-It shows the use of a connector.py file that calls a publicly available API.
-
-It also shows how to use the logging functionality provided by fivetran_connector_sdk, by logging important steps using log.info() and log.fine()
-
-See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
-
-## Book data from the OpenLibrary API
-
-[OpenLibrary API](https://openlibrary.org/dev/docs/api/search)
-
-This script connects to the OpenLibrary API using the Fivetran Connector SDK. It retrieves book information such as title, author, and publication date based on a search query, and stores the data in Fivetran using the SDK's upsert operation.
-
-**Example usage**: This script can be used to demonstrate pulling book data from OpenLibrary, making it useful to better understand how the Fivetran Connector SDK works.
-
-**Configuration**:
-- A **search term** (e.g., "Python, SQL, History, etc.") can be provided in the configuration to customize the data retrieval and limit records.
-
-## Quick reference bash commands for running in your IDE (e.g. VS Code terminal)
-
-### From this path: 
-(.venv) kelly.kohlleffel@kelly Fivetran_Connector_SDK %
-
-### Navigate to the quick_start_example/books
-```
-cd examples/quick_start_examples/books
-```
-### Run the custom connector code
-```
-python connector.py
-```
-### Deploy the connector to Fivetran
-
-This repo uses a **deploy.sh** file to prompt for the following:
-* Fivetran Account Name (this references an API key in the config.json file that is associated with the Fivetran Account Name input)
-* Fivetran Destination Name
-* Fivetran Connector Name
-
-For demo purposes, there is a default Fivetran account (in brackets) and default Fivetran destination. Simply clicking ENTER will use those defaults. A Fivetran connector name is required.
-
-* You will be prompted for the **Fivetran Account Name** **Fivetran Destination Name** and a unique **Fivetran Connector Name**
-
-```
-chmod +x files/deploy.sh
-./files/deploy.sh
-```
-
-### For reference, this is the Fivetran deployment script that runs in the deploy.sh file when executed.
-```
-fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --connection <CONNECTION-NAME>
-```
-## Alternatively: 
-
-### Navigate to the Fivetran_Connector_SDK directory in Documents/Github
-```
-cd ~/Documents/Github/Fivetran_Connector_SDK
-```
-### Navigate up one level from weather to books, for example
-```
-cd ../books
-```
-### Ensure the directory exists
-```
-mkdir -p files
-```
-### Activate your virtual environment
-```
-source .venv/bin/activate
-```
-### Navigate to the quick_start_example/books
-```
-cd examples/quick_start_examples/books
-```
-### Install the Fivetran requirements.txt file
-```
-pip install -r requirements.txt
-```
-### Run the custom connector code
-```
-python connector.py
-```
-### Deploy the connector to Fivetran
-
-This repo uses a **deploy.sh** file to prompt for the following:
-* Fivetran Account Name (this references an API key in the config.json file that is associated with the Fivetran Account Name input)
-* Fivetran Destination Name
-* Fivetran Connector Name
-
-For demo purposes, there is a default Fivetran account (in brackets) and default Fivetran destination. Simply clicking ENTER will use those defaults. A Fivetran connector name is required.
-
-* You will be prompted for the **Fivetran Account Name** **Fivetran Destination Name** and a unique **Fivetran Connector Name**
-
-```
-chmod +x files/deploy.sh
-./files/deploy.sh
-```
-
-### For reference, this is the Fivetran deployment script that runs in the deploy.sh file when executed.
-```
-fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --connection <CONNECTION-NAME>
-```
-## Fivetran Connector SDK in action
-
-### Fivetran Connector SDK: Fivetran Sync Status
-
-![Fivetran Sync Status Screenshot](./images/fivetran_syncstatus_books1_connector_sdk.png)
-
-### Fivetran Connector SDK: Data moved with the Connector SDK to Snowflake
-
-![Snowflake Snowsight Data Preview Screenshot](./images/snowflake_snowsight_datapreview2_books1_connector_sdk.png)
-
-### Fivetran Connector SDK: Snowflake Snowsight Dashboard with the new books data
-
-![Snowflake Snowsight Dashboard Screenshot](./images/snowflake_snowsight_dashboard_books1_connector_sdk.png)
-
-### SQL query for all books (update the database and schema names)
-```
-SELECT * FROM HOL_DATABASE.BOOKS1_CONNECTOR_SDK.BOOK;
-```
-
-### SQL query for the books visualization (update the database and schema names)
-```
-SELECT 
-    PUBLICATION_DATE, 
-    COUNT(*) AS book_count
-FROM 
-    HOL_DATABASE.BOOKS1_CONNECTOR_SDK.BOOK
-GROUP BY 
-    PUBLICATION_DATE
-ORDER BY 
-    PUBLICATION_DATE;
-```
+## Using the new Books dataset
+![Books Dashboard](images/dbx_books_dashboard.png)
