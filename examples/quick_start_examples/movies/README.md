@@ -9,6 +9,14 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ![Movies Sync Status](images/fivetran_sync.png)
 
+## Attribution
+<img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg" alt="TMDB Logo" width="200"/>
+
+This custom connector uses the TMDB API but is not endorsed or certified by TMDB.
+
+For more information about TMDB API terms of use and logos, please visit:
+[TMDB Logos & Attribution](https://www.themoviedb.org/about/logos-attribution)
+
 ## Features
 - Retrieves comprehensive data about Christopher Nolan's filmography using the TMDB API
 - Captures detailed movie information including budget, revenue, and ratings
