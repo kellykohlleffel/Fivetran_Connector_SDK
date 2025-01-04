@@ -607,7 +607,7 @@ display(metrics_df)
   * Value column: Total films, Average revenue, or Average budget
   * Label: Total Films, Average Revenue, or Average Budget
 
-These visualizations provides clear, consise metrics for Nolan films.
+These visualizations provide clear, consise metrics for Nolan films.
 
 ![Nolan Films: Total Films](images/total_films.png)
 
