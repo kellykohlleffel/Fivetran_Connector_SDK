@@ -127,18 +127,17 @@ This API interaction design ensures reliable data retrieval while maintaining se
 ```
 nationalparks/
 ├── __pycache__/        # Python bytecode cache directory
-├── files/              # Generated directory for Fivetran files
-│   ├── spec.json       # Configuration specification
-│   ├── state.json     # State tracking for incremental syncs
-│   ├── warehouse.db   # Local testing database
-│   └── configuration.json  # Configuration file with credentials
-├── images/            # Documentation images and screenshots
-│   └── *.png         # Various PNG image files
-├── connector.py        # Main connector implementation
-├── debug.sh           # Debug deployment script
-├── deploy.sh          # Script for Fivetran production deployment
-├── README.md         # Project documentation
-└── spec.json         # Main specification file
+├── files/              # Directory containing configuration and state files
+│   ├── deploy.sh       # Deployment script for production
+│   ├── spec.json       # Configuration specification file
+│   ├── state.json      # State tracking for incremental updates
+│   └── warehouse.db    # Local database for testing
+├── images/             # Directory for storing project images
+├── configuration.json  # Main configuration settings
+├── connector.py        # Primary connector implementation
+├── debug.sh           # Script for debugging purposes
+├── README.md          # Project documentation and instructions
+└── spec.json          # Main specification file for the connector
 ```
 
 ## File Details
