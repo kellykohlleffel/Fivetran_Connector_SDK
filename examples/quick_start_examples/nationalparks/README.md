@@ -9,6 +9,14 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ![National Parks Dashboard](images/fivetran_sync_nationalparks.png)
 
+## Attribution
+<img src="https://upload.wikimedia.org/wikipedia/commons/1/1d/US-NationalParkService-Logo.svg" alt="National Park Service Logo" width="200"/>
+
+This custom connector uses the National Park Service API. Data provided by the National Park Service.
+
+For more information about the NPS API, please visit:
+[NPS Developer Resources](https://www.nps.gov/subjects/developer/index.htm)
+
 ## Features
 - Retrieves comprehensive data about U.S. National Parks using the NPS API
 - Includes park details such as location, description, and activities
