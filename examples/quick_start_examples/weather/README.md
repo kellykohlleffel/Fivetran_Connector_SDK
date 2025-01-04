@@ -9,6 +9,14 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ![Weather Sync Status](images/fivetran_syncstatus_weather.png)
 
+## Attribution
+<img src="https://upload.wikimedia.org/wikipedia/commons/7/79/NOAA_logo.svg" alt="NOAA Weather.gov Logo" width="200"/>
+
+This custom connector uses the National Weather Service API. Data provided by the National Weather Service (NWS).
+
+For more information about the NWS API, please visit:
+[Weather.gov API Documentation](https://www.weather.gov/documentation/services-web-api)
+
 ## Features
 - Retrieves weather forecast data from National Weather Service API
 - Configurable location using gridpoints (default: Cypress, TX - HGX/52,106)
@@ -282,8 +290,6 @@ For issues or questions:
 1. Check the [National Weather Service API Documentation](https://www.weather.gov/documentation/services-web-api)
 2. Review the [Fivetran Connector SDK Documentation](https://fivetran.com/docs/connectors/connector-sdk)
 3. Contact your organization's Fivetran administrator
-
-I'll create two visualizations for the weather data focusing on temperature trends. Here's the section for the README:
 
 ## Using the new Weather dataset - Visualization 1: Temperature Variation by Time of Day
 

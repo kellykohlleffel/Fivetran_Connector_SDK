@@ -9,6 +9,14 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ![Books Dashboard](images/fivetran_sync_status_books.png)
 
+## Attribution
+<img src="https://openlibrary.org/static/images/openlibrary-logo-tighter.svg" alt="Open Library Logo" width="200"/>
+
+This custom connector uses the Open Library API. Data provided by Open Library.
+
+For more information about Open Library's terms of use, please visit:
+[Open Library Developers](https://openlibrary.org/developers)
+
 ## Features
 - Retrieves comprehensive book data from OpenLibrary API
 - Configurable search query parameter (defaults to "Agatha Christie")

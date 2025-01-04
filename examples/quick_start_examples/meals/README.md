@@ -11,6 +11,14 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ![Meals Sync Status](images/fivetran_sync_status_meals.png)
 
+## Attribution
+<img src="https://themealdb.com/images/logo-small.png" alt="TheMealDB Logo" width="200"/>
+
+This custom connector uses TheMealDB API. While attribution is not required, we acknowledge TheMealDB as the data source.
+
+For more information about TheMealDB API, please visit:
+[TheMealDB API Documentation](https://themealdb.com/api.php)
+
 ## Features
 - Retrieves comprehensive meal data from TheMealDB API
 - Processes detailed meal information including instructions and ingredients

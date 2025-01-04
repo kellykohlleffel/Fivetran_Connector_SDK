@@ -7,7 +7,15 @@ Fivetran's Connector SDK enables you to use Python to code the interaction with 
 
 See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
 
-![Water Services Sync Status](images/fivetran_syncstatus_water_connector_sdk.png)
+![Water Services Sync Status](images/fivetran_sync_status_water.png)
+
+## Attribution
+<img src="https://upload.wikimedia.org/wikipedia/commons/1/1c/USGS_logo_green.svg" alt="USGS Logo" width="200"/>
+
+This custom connector uses the USGS Water Services API. Data provided by the United States Geological Survey.
+
+For more information about the USGS Water Services, please visit:
+[USGS Water Services](https://waterservices.usgs.gov/)
 
 ## Features
 - Retrieves water data from eight Brazos River monitoring sites

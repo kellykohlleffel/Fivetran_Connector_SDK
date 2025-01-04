@@ -9,6 +9,14 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ![SpaceX Sync Status](images/fivetran_syncstatus_spacex_connector_sdk.png)
 
+## Attribution
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/SpaceX-Logo-Xonly.svg/2560px-SpaceX-Logo-Xonly.svg.png" alt="SpaceX Logo" width="200"/>
+
+This custom connector uses the SpaceX API. While attribution is not required, we acknowledge SpaceX as the data source.
+
+For more information about the SpaceX API, please visit:
+[SpaceX API Documentation](https://github.com/r-spacex/SpaceX-API)
+
 ## Features
 - Retrieves comprehensive SpaceX data from SpaceX API v4
 - Processes launch information including success rates and details

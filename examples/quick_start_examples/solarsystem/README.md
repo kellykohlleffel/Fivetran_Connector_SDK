@@ -9,6 +9,14 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 
 ![Solar System Sync Status](images/fivetran_syncstatus_solarsystem_connector_sdk.png)
 
+## Attribution
+<img src="https://api.le-systeme-solaire.net/assets/images/logo.png" alt="Le Système Solaire Logo" width="50"/>
+
+This custom connector uses data from api.le-systeme-solaire.net.
+
+For more information, please visit:
+[Le Système Solaire API](https://api.le-systeme-solaire.net/en/)
+
 ## Features
 - Retrieves comprehensive celestial object data from Solar System OpenData API
 - Processes detailed information including orbital periods and distances
