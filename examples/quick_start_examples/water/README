@@ -1,7 +1,7 @@
 # Fivetran_Connector_SDK: USGS Water Services API
 
 ## Overview
-This Fivetran custom connector leverages the Fivetran Connector SDK to retrieve data from the [USGS Water Services API](https://waterservices.usgs.gov/docs/), enabling syncing of comprehensive water data including streamflow, gauge height, and water temperature measurements from multiple Brazos River monitoring sites.
+This Fivetran custom connector leverages the Fivetran Connector SDK to retrieve data from the [USGS Water Services API](https://waterservices.usgs.gov/docs/), enabling syncing of comprehensive water data including streamflow, gauge height, and water temperature measurements from multiple Brazos River monitoring sites in Texas.
 
 Fivetran's Connector SDK enables you to use Python to code the interaction with the USGS Water Services API data source. This example shows the use of a connector.py file that calls USGS Water Services API. From there, the connector is deployed as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources, orchestration, scaling, resyncs, and log management. In addition, Fivetran handles comprehensive writing to the destination of your choice managing retries, schema inference, security, and idempotency.
 
