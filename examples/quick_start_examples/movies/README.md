@@ -614,29 +614,3 @@ These visualizations provide clear, consise metrics for Nolan films.
 ![Nolan Films: Average Revenue](images/avg_revenue.png)
 
 ![Nolan Films: Average Budget](images/avg_budget.png)
-
-## Bonus: Finding USGS Sites
-
-Want to monitor different USGS water monitoring sites? Here's how to find site codes:
-
-1. Visit the [USGS Site Mapper](https://maps.waterdata.usgs.gov/mapper/)
-
-2. Using the Site Mapper:
-   * Zoom to your area of interest
-   * Click on a monitoring site (shown as dots on the map)
-   * Note the Site Number in the popup window
-
-3. Update the sites array in connector.py:
-```python
-brazos_river_sites = [
-    "08098450",  # Brazos River at Hearne, TX
-    "YOUR_NEW_SITE_CODE"  # Your new site description
-]
-```
-
-4. Key Parameters:
-   * 00060: Discharge (flow rate)
-   * 00065: Gauge height (water level)
-   * 00010: Temperature
-
-Note: Make sure your selected sites monitor the parameters you're interested in, as not all sites measure all parameters.
