@@ -128,16 +128,16 @@ This API interaction design ensures reliable data retrieval while maintaining se
 nationalparks/
 ├── __pycache__/        # Python bytecode cache directory
 ├── files/              # Directory containing configuration and state files
-│   ├── deploy.sh       # Deployment script for production
 │   ├── spec.json       # Configuration specification file
 │   ├── state.json      # State tracking for incremental updates
 │   └── warehouse.db    # Local database for testing
 ├── images/             # Directory for storing project images
 ├── configuration.json  # Main configuration settings
 ├── connector.py        # Primary connector implementation
-├── debug.sh           # Script for debugging purposes
-├── README.md          # Project documentation and instructions
-└── spec.json          # Main specification file for the connector
+├── debug.sh            # Script for debugging purposes
+├── deploy.sh           # Deployment script for production
+├── README.md           # Project documentation and instructions
+└── spec.json           # Main specification file for the connector
 ```
 
 ## File Details
