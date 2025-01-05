@@ -81,14 +81,14 @@ response = rq.get("https://api.weather.gov/gridpoints/HGX/52,106/forecast")
 weather/
 ├── __pycache__/        # Python bytecode cache directory
 ├── files/              # Generated directory for Fivetran files
-│   ├── state.json     # State tracking for incremental syncs
-│   └── warehouse.db   # Local testing database
-├── images/            # Documentation images
-├── connector.py       # Main connector implementation
-├── debug.sh          # Debug deployment script
-├── deploy.sh         # Production deployment script
-├── README.md         # Project documentation
-└── requirements.txt   # Python dependencies
+│   ├── state.json      # State tracking for incremental syncs
+│   └── warehouse.db    # Local testing database
+├── images/             # Documentation images
+├── connector.py        # Main connector implementation
+├── debug.sh            # Debug deployment script
+├── deploy.sh           # Production deployment script
+├── README.md           # Project documentation
+└── requirements.txt    # Python dependencies
 ```
 
 ## File Details

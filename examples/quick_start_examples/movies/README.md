@@ -119,18 +119,18 @@ The update function orchestrates three main data syncs:
 ## Directory Structure
 ```
 movies/
-├── __pycache__/
-├── files/
-│   ├── spec.json
-│   ├── state.json
-│   └── warehouse.db
-├── images/
-├── configuration.json
-├── connector.py
-├── debug.sh
-├── deploy.sh
-├── README.md
-└── spec.json
+├── __pycache__/        # Python bytecode cache directory
+├── files/              # Directory containing configuration and state files
+│   ├── spec.json       # Configuration specification file
+│   ├── state.json      # State tracking for incremental updates
+│   └── warehouse.db    # Local database for testing
+├── images/             # Directory for storing project images
+├── configuration.json  # Main configuration settings
+├── connector.py        # Primary connector implementation
+├── debug.sh            # Script for debugging purposes
+├── deploy.sh           # Deployment script for production
+├── README.md           # Project documentation and instructions
+└── spec.json           # Main specification file for the connector
 ```
 
 ## File Details
