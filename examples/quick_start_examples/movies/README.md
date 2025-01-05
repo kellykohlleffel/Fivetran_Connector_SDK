@@ -219,7 +219,7 @@ Generated copy of the connector specification file.
 Tracks the state of incremental syncs.
 
 ### files/warehouse.db
-SQLite database used for local testing.
+DuckDB database used for local testing.
 
 ### images/
 Contains documentation screenshots and images:
