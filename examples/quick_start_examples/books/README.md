@@ -83,13 +83,13 @@ publication_date = str(book.get("first_publish_year", None))
 openlibrary/
 ├── __pycache__/        # Python bytecode cache directory
 ├── files/              # Generated directory for Fivetran files
-│   ├── state.json       # State tracking for incremental syncs
+│   ├── state.json      # State tracking for incremental syncs
 │   └── warehouse.db    # Local testing database
 ├── images/             # Documentation images
 ├── connector.py        # Main connector implementation
-├── debug.sh           # Debug deployment script
-├── deploy.sh          # Production deployment script
-├── README.md          # Project documentation
+├── debug.sh            # Debug deployment script
+├── deploy.sh           # Production deployment script
+├── README.md           # Project documentation
 └── requirements.txt    # Python dependencies
 ```
 
