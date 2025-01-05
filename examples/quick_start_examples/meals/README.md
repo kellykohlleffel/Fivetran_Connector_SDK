@@ -1,5 +1,3 @@
-Here is the complete README in copy/paste markdown format:
-
 # Fivetran_Connector_SDK: TheMealDB API
 
 ## Overview
