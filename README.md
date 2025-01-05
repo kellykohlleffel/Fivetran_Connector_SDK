@@ -1,111 +1,90 @@
-# Fivetran_Connector_SDK
- ## Quickly build custom connectors using the Fivetran Connector SDK
+# Fivetran Connector SDK Examples
 
-[Fivetran's Connector SDK](https://fivetran.com/docs/connectors/connector-sdk) allows you to code a custom data connector using Python and deploy it as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources.
+## Overview
+This repository contains a collection of example custom connectors using [Fivetran's Connector SDK](https://fivetran.com/docs/connectors/connector-sdk), demonstrating how to build custom data connectors in Python. Each example showcases different API integrations and data synchronization patterns, providing practical templates for building your own custom connectors.
 
-These are simple examples for how to work with the fivetran_connector_sdk module. 
+The Fivetran Connector SDK enables you to:
+- Code API interactions in Python
+- Deploy connectors as Fivetran extensions
+- Leverage Fivetran's automated management of:
+  - Scheduled runs
+  - Compute resources
+  - Orchestration
+  - Scaling
+  - Resyncs
+  - Log management
+  - Comprehensive data writing
+  - Retries
+  - Schema inference
+  - Security
+  - Idempotency
 
-They show the use of a requirements.txt file and a connector.py file that call publicly available APIs.
+## Quick Start Examples
 
-They also show how to use the logging functionality provided by fivetran_connector_sdk, by logging important steps using log.info() and log.fine()
+### 📚 Books (OpenLibrary API)
+[OpenLibrary API](https://openlibrary.org/developers/api) integration that syncs comprehensive book information including titles, authors, publication dates, ISBNs, and publisher details.
 
-See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
+### 🍳 Meals (TheMealDB API)
+[TheMealDB API](https://www.themealdb.com/api.php) connector that retrieves detailed meal information including names, categories, cuisines, instructions, and ingredients.
 
-**APIs used in these examples**:
+### 🎬 Movies (TMDB API)
+[The Movie Database API](https://developer.themoviedb.org/reference/configuration-details) implementation focusing on Christopher Nolan's filmography, including movie details, cast credits, and reviews.
 
-- Book data from the [OpenLibrary API](https://openlibrary.org/dev/docs/api/search)
-- Meals data from [TheMealsDB API](https://www.themealdb.com/api.php)
-- US National Parks data from the [US National Park Service API](https://www.nps.gov/subjects/developer/api-documentation.htm) (extracts data from multiple tables)
-- Solar system data from the [Solar System OpenData API](https://api.le-systeme-solaire.net/en/)
-- SpaceX launch data from the [SpaceX API](https://github.com/r-spacex/SpaceX-API/tree/master/docs#rspacex-api-docs)
-- Weather forecast data from the [National Weather Service API](https://www.weather.gov/documentation/services-web-api) for Cypress, TX, USA 
+### 🏞️ National Parks (NPS API)
+[National Park Service API](https://www.nps.gov/subjects/developer/index.htm) connector synchronizing U.S. National Parks information, including park details, fees, passes, and activities.
 
-## Quick reference bash commands for running in your IDE (e.g. VS Code terminal)
+### 🌍 Solar System (Solar System OpenData API)
+[Solar System OpenData API](https://api.le-systeme-solaire.net) integration providing celestial object data including names, types, orbital periods, and solar distances.
 
-### From this path: 
-(.venv) kelly.kohlleffel@kelly Fivetran_Connector_SDK %
+### 🚀 SpaceX (SpaceX API)
+[SpaceX API](https://github.com/r-spacex/SpaceX-API/tree/master/docs) connector retrieving comprehensive SpaceX information about launches, rockets, and capsules.
 
-### Navigate to the quick_start_example/weather
+### 💧 Water (USGS Water Services API)
+[USGS Water Services API](https://waterservices.usgs.gov/docs/) implementation syncing water data from Brazos River monitoring sites in Texas, including streamflow, gauge height, and temperature measurements.
+
+### ⛅ Weather (National Weather Service API)
+[National Weather Service API](https://www.weather.gov/documentation/services-web-api) connector retrieving weather forecast information for Cypress, TX, including temperature data and forecast periods. This example was based on the [Fivetran Connector SDK Quickstart Example](https://github.com/fivetran/fivetran_connector_sdk/tree/main/examples/quickstart_examples/weather), which served as the original template for the additional connector examples in this repository.
+
+## Repository Structure
 ```
-cd examples/quick_start_examples/weather
-```
-### Run the custom connector code
-```
-python connector.py
-```
-### Deploy the connector to Fivetran
-
-This repo uses a **deploy.sh** file to prompt for the following:
-* Fivetran Account Name (this references an API key in the config.json file that is associated with the Fivetran Account Name input)
-* Fivetran Destination Name
-* Fivetran Connector Name
-
-For demo purposes, there is a default Fivetran account (in brackets) and default Fivetran destination. Simply clicking ENTER will use those defaults. A Fivetran connector name is required.
-
-* You will be prompted for the **Fivetran Account Name** **Fivetran Destination Name** and a unique **Fivetran Connector Name**
-
-```
-chmod +x files/deploy.sh
-./files/deploy.sh
-```
-
-### For reference, this is the Fivetran deployment script that runs in the deploy.sh file when executed.
-```
-fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --connection <CONNECTION-NAME>
-```
-
-## Alternatively: 
-
-### Ensure the directory exists
-```
-mkdir -p files
-```
-### Activate your virtual environment
-```
-source .venv/bin/activate
-```
-### Navigate to the quick_start_example/weather
-```
-cd examples/quick_start_examples/weather
-```
-### Install the Fivetran requirements.txt file
-```
-pip install -r requirements.txt
-```
-### Run the custom connector code
-```
-python connector.py
-```
-### Deploy the connector to Fivetran
-
-This repo uses a **deploy.sh** file to prompt for the following:
-* Fivetran Account Name (this references an API key in the config.json file that is associated with the Fivetran Account Name input)
-* Fivetran Destination Name
-* Fivetran Connector Name
-
-For demo purposes, there is a default Fivetran account (in brackets) and default Fivetran destination. Simply clicking ENTER will use those defaults. A Fivetran connector name is required.
-
-* You will be prompted for the **Fivetran Account Name** **Fivetran Destination Name** and a unique **Fivetran Connector Name**
-
-```
-chmod +x files/deploy.sh
-./files/deploy.sh
+examples/quick_start_examples/
+└── books           # OpenLibrary API connector
+└── meals           # MealDB API connector
+└── movies          # TMDB API connector
+└── nationalparks   # NPS API connector
+└── solarsystem     # Solar System OpenData connector
+└── spacex          # SpaceX API connector
+└── water           # USGS Water Services connector
+└── weather         # National Weather Service connector
+├── .gitattributes  # Git attributes configuration
+├── .gitignore      # Git ignore rules
+├── config.json     # Fivetran Account API keys
+├── config.template.json   # API key template
+├── README.md       # This documentation
 ```
 
-### For reference, this is the Fivetran deployment script that runs in the deploy.sh file when executed.
-```
-fivetran deploy --api-key <FIVETRAN-API-KEY> --destination <DESTINATION-NAME> --connection <CONNECTION-NAME>
-```
-## Fivetran Connector SDK in action
+## Getting Started
 
-### Fivetran Connector SDK: Fivetran Sync Status
+Each example connector in the `quick_start_examples` directory contains:
+- Detailed README with setup and usage instructions
+- Complete connector implementation
+- Deployment scripts
+- Configuration templates
+- Example outputs and visualizations
 
-![Fivetran Sync Status Screenshot](./examples/quick_start_examples/weather/images/fivetran_syncstatus_kelly_cypress_weather_connector_sdk.png)
+For specific implementation details and setup instructions, refer to the README in each connector's directory.
 
-### Fivetran Connector SDK: Data moved with the Connector SDK to Snowflake
+## Documentation
+- [Fivetran Connector SDK Technical Reference](https://fivetran.com/docs/connectors/connector-sdk/technical-reference)
+- [Fivetran Connector SDK Best Practices](https://fivetran.com/docs/connectors/connector-sdk/best-practices)
 
-![Snowflake Snowsight Data Preview Screenshot](./examples/quick_start_examples/weather/images/snowflake_snowsight_datapreview_kelly_cypress_weather_connector_sdk.png)
+## Contributing
+To add a new connector example:
+1. Create a new directory under `examples/quick_start_examples/`
+2. Include a comprehensive README following the existing pattern
+3. Implement the connector and deployment scripts
+4. Add the connector to this main README under "Quick Start Examples"
 
-### Fivetran Connector SDK: Snowflake Snowsight Dashboard with the new temperature data
-
-![Snowflake Snowsight Dashboard Screenshot](./examples/quick_start_examples/weather/images/snowflake_snowsight_dashboard_fivetran_connector_sdk.png)
+## Support
+For Fivetran Connector SDK support:
+- Consult the [Fivetran Documentation](https://fivetran.com/docs/connectors/connector-sdk)
