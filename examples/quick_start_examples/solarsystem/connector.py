@@ -1,23 +1,3 @@
-"""
-connector.py
-
-This script connects to the Solar System OpenData API using the Fivetran Connector SDK. 
-It retrieves information about celestial objects in our Solar System, including 
-object names, types, orbital periods, and distances from the Sun, and stores this 
-data in Fivetran using the SDK's upsert operation.
-
-Example usage: This script can be used to demonstrate pulling Solar System data 
-from the Solar System OpenData API, showcasing how the Fivetran Connector SDK works.
-
-Requirements:
-- No additional Python libraries are required, as `requests` and the 
-  `fivetran_connector_sdk` are assumed to be pre-installed.
-
-Fivetran Connector SDK Documentation:
-- Technical Reference: https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update
-- Best Practices: https://fivetran.com/docs/connectors/connector-sdk/best-practices
-"""
-
 import requests as rq  # Import requests for making HTTP requests, aliased as rq.
 from fivetran_connector_sdk import Connector  # Connector class to set up the Fivetran connector.
 from fivetran_connector_sdk import Logging as log  # Logging functionality to log key steps.

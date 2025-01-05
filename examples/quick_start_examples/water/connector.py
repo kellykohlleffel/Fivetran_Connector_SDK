@@ -1,22 +1,3 @@
-"""
-connector.py
-
-This script connects to the USGS Water Services API using the Fivetran Connector SDK.
-It retrieves the last 10 days of water data measurements for the Brazos River at Hearne site,
-including streamflow, gauge height, and water temperature (Fahrenheit), storing this
-data in Fivetran using the SDK's upsert operation.
-
-Example usage: This script can be used to demonstrate pulling water data 
-from the USGS API, showcasing how the Fivetran Connector SDK works with REST APIs.
-
-Requirements:
-- No additional Python libraries are required, as `requests` and the 
-  `fivetran_connector_sdk` are assumed to be pre-installed.
-
-USGS Water Services API Documentation:
-- API Reference: https://waterservices.usgs.gov/docs/
-"""
-
 import requests as rq
 from fivetran_connector_sdk import Connector
 from fivetran_connector_sdk import Logging as log

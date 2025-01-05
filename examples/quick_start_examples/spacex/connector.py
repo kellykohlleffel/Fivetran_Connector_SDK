@@ -1,21 +1,3 @@
-"""
-connector.py
-
-This script connects to the SpaceX API using the Fivetran Connector SDK.
-It retrieves information about SpaceX launches, rockets, and capsules,
-storing this data in Fivetran using the SDK's upsert operation.
-
-Example usage: This script can be used to sync SpaceX data into your data warehouse,
-demonstrating how the Fivetran Connector SDK works with REST APIs.
-
-Requirements:
-- No additional Python libraries are required, as `requests` and the 
-  `fivetran_connector_sdk` are assumed to be pre-installed.
-
-SpaceX API Documentation:
-- API Reference: https://github.com/r-spacex/SpaceX-API/tree/master/docs
-"""
-
 import requests as rq
 from fivetran_connector_sdk import Connector
 from fivetran_connector_sdk import Logging as log

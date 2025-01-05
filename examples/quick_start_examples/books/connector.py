@@ -1,26 +1,3 @@
-"""
-connector.py
-
-This script connects to the OpenLibrary API using the Fivetran Connector SDK. 
-It retrieves book information such as title, author, and publication date based 
-on a search query, and stores the data in Fivetran using the SDK's upsert operation.
-
-Example usage: This script can be used to demonstrate pulling book data from 
-OpenLibrary, making it useful to better understand how the Fivetran Connector SDK works.
-
-Configuration:
-- The search term (e.g., "Python") can be provided in the configuration to 
-  customize the data retrieval and limit records or the default value "Agatha Christie" changed below.
-
-Requirements:
-- No additional Python libraries are required, as `requests` and the 
-  `fivetran_connector_sdk` are assumed to be pre-installed.
-
-Fivetran Connector SDK Documentation:
-- Technical Reference: https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update
-- Best Practices: https://fivetran.com/docs/connectors/connector-sdk/best-practices
-"""
-
 from datetime import datetime  # Import datetime for handling date conversions.
 import requests as rq  # Import requests for making HTTP requests, aliased as rq.
 
