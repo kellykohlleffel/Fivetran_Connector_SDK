@@ -1,6 +1,7 @@
 # Configuration files with sensitive data
 config.json
 configuration.json
+config.template.json
 
 # Database files
 files/warehouse.db
