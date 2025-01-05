@@ -492,6 +492,77 @@ time.sleep(0.5)  # Increased delay between requests
 
 Note: Make sure to test the modified connector thoroughly, as different directors may have varying amounts of data and different data structures for older films.
 
+## Using the new Movies dataset - Data Transformation: Analysis View
+
+### From a Databricks Notebook
+
+1. Copy and paste into cell 1 to create the refined analysis view
+```python
+# Create a refined view combining movie, credits, and review data with additional metrics
+spark.sql("""
+CREATE OR REPLACE TABLE `ts-catalog-demo`.`movies_0104_0817`.`movie_analysis_view` AS
+SELECT 
+    m.title,
+    m.release_date,
+    m.runtime,
+    m.budget,
+    m.revenue,
+    m.vote_average,
+    COUNT(DISTINCT c.person_id) as cast_size,
+    COUNT(DISTINCT r.review_id) as review_count,
+    AVG(CAST(r.rating as DOUBLE)) as avg_review_rating,
+    (m.revenue - m.budget) as profit,
+    (m.revenue / NULLIF(m.budget, 0)) as roi
+FROM `ts-catalog-demo`.`movies_0104_0817`.movies m
+LEFT JOIN `ts-catalog-demo`.`movies_0104_0817`.credits c 
+    ON m.movie_id = c.movie_id
+LEFT JOIN `ts-catalog-demo`.`movies_0104_0817`.reviews r 
+    ON m.movie_id = r.movie_id
+WHERE m.budget > 0
+GROUP BY 
+    m.title,
+    m.release_date,
+    m.runtime,
+    m.budget,
+    m.revenue,
+    m.vote_average
+ORDER BY m.release_date DESC
+""")
+```
+
+2. Copy and paste into cell 2 to verify the view creation and examine sample data
+```python
+# Verify the table was created and display sample data
+display(spark.sql("SELECT * FROM `ts-catalog-demo`.`movies_0104_0817`.`movie_analysis_view` LIMIT 5"))
+```
+
+### Transformation Details
+
+The script performs the following transformations:
+- Joins movie data with credits and reviews using movie ID
+- Filters out movies with zero or null budgets
+- Aggregates cast and review metrics per movie
+- Calculates financial performance metrics
+- Orders results by release date for temporal analysis
+
+### Key Metrics Available in View
+- Basic movie information: title, release_date, runtime
+- Financial metrics: budget, revenue, profit, roi
+- Rating metrics: vote_average, avg_review_rating
+- Engagement metrics: cast_size, review_count
+- Performance indicators: 
+  - Return on Investment (ROI)
+  - Total profit
+  - Average review ratings
+
+### Usage Notes
+- Update the catalog and schema names as needed for your environment
+- The view updates/replaces automatically when rerun
+- Null budget values are handled with NULLIF for ROI calculation
+- Cast size calculation considers distinct person IDs only
+- Review metrics are averaged across all reviews per movie
+- The view is optimized for visualization and analysis purposes
+
 ## Using the new Movies dataset - Visualization 1: Nolan Films Analysis - Budget vs Revenue Success Matrix
 
 ### From a Databricks Notebook
