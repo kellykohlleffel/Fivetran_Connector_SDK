@@ -129,8 +129,8 @@ if [ "$API_KEY" == "null" ]; then
 fi
 
 # Prompt for the Fivetran Destination Name
-read -p "Enter your Fivetran Destination Name [ADLS_UNITY_CATALOG]: " DESTINATION_NAME
-DESTINATION_NAME=${DESTINATION_NAME:-"ADLS_UNITY_CATALOG"}
+read -p "Enter your Fivetran Destination Name [DATABRICKS_UNITY_CATALOG_SERVERLESS]: " DESTINATION_NAME
+DESTINATION_NAME=${DESTINATION_NAME:-"DATABRICKS_UNITY_CATALOG_SERVERLESS"}
 
 # Prompt for the Fivetran Connector Name
 read -p "Enter a unique Fivetran Connector Name [default-connection]: " CONNECTION_NAME

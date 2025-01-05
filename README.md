@@ -24,6 +24,9 @@ The Fivetran Connector SDK enables you to:
 ### 📚 Books (OpenLibrary API)
 [OpenLibrary API](https://openlibrary.org/developers/api) integration that syncs comprehensive book information including titles, authors, publication dates, ISBNs, and publisher details.
 
+### 💰 Crypto Markets (CoinGecko API)
+[CoinGecko API](https://www.coingecko.com/en/api) integration that syncs real-time cryptocurrency market data including prices, market caps, trading volumes, and historical metrics.
+
 ### 🍳 Meals (TheMealDB API)
 [TheMealDB API](https://www.themealdb.com/api.php) connector that retrieves detailed meal information including names, categories, cuisines, instructions, and ingredients.
 
@@ -49,6 +52,7 @@ The Fivetran Connector SDK enables you to:
 ```
 examples/quick_start_examples/
 └── books           # OpenLibrary API connector
+└── crypto          # CoinGecko API connector
 └── meals           # MealDB API connector
 └── movies          # TMDB API connector
 └── nationalparks   # NPS API connector
