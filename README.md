@@ -36,6 +36,9 @@ The Fivetran Connector SDK enables you to:
 ### 🏞️ National Parks (NPS API)
 [National Park Service API](https://www.nps.gov/subjects/developer/index.htm) connector synchronizing U.S. National Parks information, including park details, fees, passes, and activities.
 
+### 📰 NYT Most Popular Articles (NYT API)
+[NYT Most Popular API](https://developer.nytimes.com/docs/most-popular-product/1/overview) integration that syncs the most viewed articles from the past 7 days, including article metadata, sections, keywords, and associated media. 
+
 ### 🌍 Solar System (Solar System OpenData API)
 [Solar System OpenData API](https://api.le-systeme-solaire.net) integration providing celestial object data including names, types, orbital periods, and solar distances.
 
@@ -56,6 +59,7 @@ examples/quick_start_examples/
 └── meals           # MealDB API connector
 └── movies          # TMDB API connector
 └── nationalparks   # NPS API connector
+└── nytmostpopular  # New York Times (NYT) API connector
 └── solarsystem     # Solar System OpenData connector
 └── spacex          # SpaceX API connector
 └── water           # USGS Water Services connector
