@@ -22,37 +22,37 @@ The Fivetran Connector SDK enables you to:
 ## Quick Start Examples
 
 ### 📚 Books (OpenLibrary API)
-[OpenLibrary API](https://openlibrary.org/developers/api) integration that syncs comprehensive book information including titles, authors, publication dates, ISBNs, and publisher details.
+[OpenLibrary API](https://openlibrary.org/developers/api) custom connector that syncs comprehensive book information including titles, authors, publication dates, ISBNs, and publisher details.
 
 ### 💰 Crypto Markets (CoinGecko API)
-[CoinGecko API](https://www.coingecko.com/en/api) integration that syncs real-time cryptocurrency market data including prices, market caps, trading volumes, and historical metrics.
+[CoinGecko API](https://www.coingecko.com/en/api) custom connector that syncs real-time cryptocurrency market data including prices, market caps, trading volumes, and historical metrics.
 
 ### 💱 Exchange Rates (ExchangeRate API)  
-[ExchangeRate API](https://www.exchangerate-api.com/docs/overview) connector that retrieves real-time exchange rates for USD paired with EUR, GBP, JPY, and AUD. Includes simulated historical data for a 7-day trend analysis without requiring a paid API subscription.
+[ExchangeRate API](https://www.exchangerate-api.com/docs/overview) custom connector that retrieves real-time exchange rates for USD paired with EUR, GBP, JPY, and AUD. Includes simulated historical data for a 7-day trend analysis without requiring a paid API subscription.
 
 ### 🍳 Meals (TheMealDB API)
-[TheMealDB API](https://www.themealdb.com/api.php) connector that retrieves detailed meal information including names, categories, cuisines, instructions, and ingredients.
+[TheMealDB API](https://www.themealdb.com/api.php) custom connector that retrieves detailed meal information including names, categories, cuisines, instructions, and ingredients.
 
 ### 🎬 Movies (TMDB API)
-[The Movie Database API](https://developer.themoviedb.org/reference/configuration-details) implementation focusing on Christopher Nolan's filmography, including movie details, cast credits, and reviews.
+[The Movie Database API](https://developer.themoviedb.org/reference/configuration-details) custom connector focusing on Christopher Nolan's filmography, including movie details, cast credits, and reviews.
 
 ### 🏞️ National Parks (NPS API)
-[National Park Service API](https://www.nps.gov/subjects/developer/index.htm) connector synchronizing U.S. National Parks information, including park details, fees, passes, and activities.
+[National Park Service API](https://www.nps.gov/subjects/developer/index.htm) custom connector synchronizing U.S. National Parks information, including park details, fees, passes, and activities.
 
 ### 📰 NYT Most Popular Articles (NYT API)
-[NYT Most Popular API](https://developer.nytimes.com/docs/most-popular-product/1/overview) integration that syncs the most viewed articles from the past 7 days, including article metadata, sections, keywords, and associated media. 
+[NYT Most Popular API](https://developer.nytimes.com/docs/most-popular-product/1/overview) custom connector that syncs the most viewed articles from the past 7 days, including article metadata, sections, keywords, and associated media. 
 
 ### 🌍 Solar System (Solar System OpenData API)
-[Solar System OpenData API](https://api.le-systeme-solaire.net) integration providing celestial object data including names, types, orbital periods, and solar distances.
+[Solar System OpenData API](https://api.le-systeme-solaire.net) custom connector providing celestial object data including names, types, orbital periods, and solar distances.
 
 ### 🚀 SpaceX (SpaceX API)
-[SpaceX API](https://github.com/r-spacex/SpaceX-API/tree/master/docs) connector retrieving comprehensive SpaceX information about launches, rockets, and capsules.
+[SpaceX API](https://github.com/r-spacex/SpaceX-API/tree/master/docs) custom connector retrieving comprehensive SpaceX information about launches, rockets, and capsules.
 
 ### 💧 Water (USGS Water Services API)
-[USGS Water Services API](https://waterservices.usgs.gov/docs/) implementation syncing water data from Brazos River monitoring sites in Texas, including streamflow, gauge height, and temperature measurements.
+[USGS Water Services API](https://waterservices.usgs.gov/docs/) custom connector syncing water data from Brazos River monitoring sites in Texas, including streamflow, gauge height, and temperature measurements.
 
 ### ⛅ Weather (National Weather Service API)
-[National Weather Service API](https://www.weather.gov/documentation/services-web-api) connector retrieving weather forecast information for Cypress, TX, including temperature data and forecast periods. This example was based on the [Fivetran Connector SDK Quickstart Example](https://github.com/fivetran/fivetran_connector_sdk/tree/main/examples/quickstart_examples/weather), which served as the original template for the additional connector examples in this repository.
+[National Weather Service API](https://www.weather.gov/documentation/services-web-api) custom connector retrieving weather forecast information for Cypress, TX, including temperature data and forecast periods. This example was based on the [Fivetran Connector SDK Quickstart Example](https://github.com/fivetran/fivetran_connector_sdk/tree/main/examples/quickstart_examples/weather), which served as the original template for the additional connector examples in this repository.
 
 ## Repository Structure
 ```
