@@ -1,27 +1,31 @@
-# Fivetran_Connector_SDK: NYT Most Popular API
+# Fivetran_Connector_SDK: ExchangeRate API
 
 ## Overview
-This Fivetran custom connector leverages the Fivetran Connector SDK to retrieve data from [The New York Times Most Popular API](https://developer.nytimes.com/docs/most-popular-product/1/overview). The connector synchronizes the most viewed articles over the last 7 days, including comprehensive article information and associated media data.
+This Fivetran custom connector leverages the Fivetran Connector SDK to retrieve exchange rate data from [ExchangeRate API](https://www.exchangerate-api.com/docs/overview). The connector obtains real-time exchange rates for major currency pairs using USD as the base currency, paired with EUR, GBP, JPY, and AUD. It combines real-time rates with simulated historical data to provide a 7-day trend analysis.
 
-Fivetran's Connector SDK enables you to use Python to code the interaction with the NYT API data source. This example shows the use of a connector.py file that calls NYT API. From there, the connector is deployed as an extension of Fivetran. Fivetran automatically manages running the connector on your scheduled frequency and manages the required compute resources, orchestration, scaling, resyncs, and log management.
+The connector uses the free tier of the ExchangeRate API which provides current rates, while historical data is simulated using small variations from the current rates to enable trend analysis without requiring a paid API subscription.
+
+Fivetran's Connector SDK enables you to use Python to code the interaction with the ExchangeRate API data source. The connector is deployed as an extension of Fivetran, which automatically manages scheduling, compute resources, orchestration, scaling, resyncs, and log management.
 
 See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
 
-![NYT Sync Status](images/fivetran_sync.png)
+![Exchange Rate Sync Status](images/fivetran_sync.png)
 
 ## Attribution
-<img src="https://developer.nytimes.com/files/poweredby_nytimes_200a.png" alt="NYT Logo" width="200"/>
 
-This custom connector uses the NYT API but is not endorsed or certified by The New York Times.
+![ExchangeRate Logo](images/exchangerate-logo.png)
 
-For more information about NYT API terms of use and attribution requirements, please visit:
-[NYT API Terms of Use](https://developer.nytimes.com/terms)
+This custom connector uses the ExchangeRate API but is not endorsed or certified by ExchangeRate API.
+
+Data provided by ExchangeRate API (https://www.exchangerate-api.com)
+
+For more information about ExchangeRate API terms of use and attribution requirements, please visit:
+[ExchangeRate API Terms of Use](https://www.exchangerate-api.com/terms)
 
 ## Features
-- Retrieves most viewed articles from the last 7 days
-- Captures detailed article information including section, subsection, and byline
-- Collects associated media data including images and metadata
-- Tracks article views and keywords
+- Retrieves real-time exchange rates for major currency pairs (USD to EUR, GBP, JPY, AUD)
+- Creates simulated 7-day historical data based on current rates
+- Maintains consistent currency pair tracking and relationships
 - Implements robust error handling and retry mechanisms
 - Uses rate limiting to handle API quotas efficiently
 - Supports incremental syncs through state tracking
@@ -56,29 +60,46 @@ Manages API calls with comprehensive error handling and logging:
 ### Data Retrieval Strategy
 
 #### Data Collection
-The connector implements a focused approach for most viewed articles:
-- Uses the "/viewed/7.json" endpoint
-- Retrieves articles with view data from the last 7 days
-- Collects detailed article metadata and media information
+The connector implements a multi-tier data strategy:
+1. Real-time Data (API):
+   - Uses the "/latest/{base_currency}" endpoint
+   - Retrieves current exchange rates for major currency pairs
+   - Single API call per sync
+
+2. Historical Data (Simulated):
+   - Creates 7 days of historical data
+   - Based on current rates with ±0.1% daily variations
+   - Provides realistic trend analysis capability
+
+3. Reference Data (Static):
+   - Maintains currency pair metadata
+   - Tracks relationship between currencies
+   - Provides consistent identifiers for joins
 
 #### Response Processing
 Each API response is processed with:
-- Validation of response structure
-- Extraction of relevant article information
-- Status tracking for data completeness
+- Validation of response structure and success status
+- Extraction of relevant exchange rate information
+- Creation of unique identifiers for rates and currency pairs
+- Generation of simulated historical variations
 
 #### Update Function Implementation
-The update function orchestrates two main data syncs:
+The update function orchestrates three main data syncs:
 
-1. Articles Sync
-- Retrieves basic article information
-- Processes metadata (sections, keywords, facets)
-- Handles view counts and dates
+1. Currency Pairs Sync
+- Creates and maintains currency pair metadata
+- Generates unique currency pair identifiers
+- Tracks major pair status and updates
 
-2. Media Sync
-- Processes media items for each article
-- Captures image metadata and formats
-- Links all media to their respective articles
+2. Latest Rates Sync (Real Data)
+- Retrieves current exchange rates
+- Processes rate timestamps
+- Links rates to currency pairs
+
+3. Historical Rates Sync (Simulated)
+- Creates 7-day historical record
+- Applies realistic rate variations
+- Maintains consistent data patterns
 
 ### Error Handling
 
@@ -90,19 +111,19 @@ The update function orchestrates two main data syncs:
 #### Data Validation
 - Checks for required fields in responses
 - Handles missing or null values gracefully
-- Provides detailed error logging
+- Validates rate values and currency codes
 
 ### Performance Optimization
 
 #### Request Management
-- Implements rate limiting (0.25s delay between requests)
-- Uses efficient API endpoints for bulk data retrieval
+- Single API call for latest rates
+- Efficient handling of rate limits
 - Maintains consistent request patterns
 
 #### Data Processing
-- Filters data during processing to minimize memory usage
-- Structures data for efficient database insertion
-- Logs performance metrics
+- Optimized data structures for rate storage
+- Efficient currency pair tracking
+- Minimized API calls through data reuse
 
 ## Security Features
 - API key masking in all logs
@@ -112,7 +133,7 @@ The update function orchestrates two main data syncs:
 
 ## Directory Structure
 ```
-nytmostpopular/
+exchangerate/
 ├── __pycache__/        # Python bytecode cache directory
 ├── files/              # Directory containing configuration and state files
 │   ├── spec.json       # Configuration specification file
@@ -132,15 +153,15 @@ nytmostpopular/
 ### connector.py
 Main connector implementation file that handles:
 - API authentication and requests
-- Data retrieval and transformation
-- Schema definition
+- Exchange rate data retrieval and transformation
+- Schema definition for currency pairs and rates
 - Error handling and logging
 
 ### configuration.json
 Configuration file containing API credentials:
 ```json
 {
-    "api_key": "YOUR_NYT_API_KEY"
+    "api_key": "YOUR_EXCHANGERATE_API_KEY"
 }
 ```
 **Note**: This file is automatically copied to the files directory during debug. Do not commit this file to version control.
@@ -215,13 +236,6 @@ Tracks the state of incremental syncs.
 ### files/warehouse.db
 DuckDB database used for local testing.
 
-### images/
-Contains documentation screenshots and images:
-- Directory structure screenshots
-- Sample output images
-- Configuration examples
-- Other visual documentation
-
 ### spec.json
 Main specification file defining the configuration schema:
 ```json
@@ -233,7 +247,7 @@ Main specification file defining the configuration schema:
         "properties": {
             "api_key": {
                 "type": "string",
-                "description": "Enter your NYT API key",
+                "description": "Enter your ExchangeRate API key",
                 "configurationGroupKey": "Authentication",
                 "secret": true
             }
@@ -268,14 +282,14 @@ __pycache__/
 ### Prerequisites
 - Python 3.8+
 - Fivetran Connector SDK
-- NYT API Key (obtain from [NYT Developer Portal](https://developer.nytimes.com))
+- ExchangeRate API Key (obtain from [ExchangeRate API Developer Portal](https://www.exchangerate-api.com))
 - Fivetran Account with destination configured
 
 ### Installation Steps
 1. Create project directory:
 ```bash
-mkdir -p nytmostpopular
-cd nytmostpopular
+mkdir -p exchangerate
+cd exchangerate
 ```
 
 2. Create virtual environment:
@@ -295,13 +309,12 @@ touch connector.py configuration.json spec.json
 chmod +x debug.sh deploy.sh
 ```
 
-5. Configure your NYT API key:
+5. Configure your ExchangeRate API key:
 - Add your API key to configuration.json
 - Keep this file secure and do not commit to version control
 
 6. Set up .gitignore:
 ```bash
-touch .gitignore
 # Generated files
 files/
 warehouse.db/
@@ -331,7 +344,7 @@ chmod +x debug.sh
 The debug process will:
 1. Reset any existing state
 2. Create the files directory
-3. Retrieve NYT most popular article data
+3. Retrieve exchange rate data
 4. Log the process details
 5. Create local database files for testing
 
@@ -348,55 +361,51 @@ The script will:
 
 ### Expected Output
 The connector will:
-1. Reset any existing state
-2. Create the files directory
-3. Retrieve NYT most viewed articles for the past 7 days
-4. Process article metadata (sections, keywords, facets)
-5. Media collection and processing
-6. Log all sync activities and rate limiting details
-7. Create local database files for testing including:
-   - Article data in `articles` table
-   - Media data in `media` table
-8. Generate sync completion report with:
-   - Total articles processed
-   - Total media items processed
+1. Create currency pair entries for USD to EUR, GBP, JPY, AUD
+2. Retrieve latest exchange rates for all pairs
+3. Generate historical rates for the past 7 days
+4. Log all sync activities and rate limiting details
+5. Create local database files with three tables:
+   - Currency pairs table
+   - Latest rates table
+   - Historical rates table
+6. Generate sync completion report with:
+   - Total currency pairs processed
+   - Total rate entries created
    - Processing duration
    - Any rate limiting events encountered
 
 ## Data Tables
 
-### articles
-Primary table containing article information:
-- id (STRING, Primary Key)
-- url (STRING)
-- title (STRING)
-- abstract (STRING)
-- published_date (STRING)
-- updated_date (STRING)
-- section (STRING)
-- subsection (STRING)
-- byline (STRING)
-- type (STRING)
-- adx_keywords (STRING)
-- views (INTEGER)
-- des_facet (STRING, JSON array)
-- org_facet (STRING, JSON array)
-- per_facet (STRING, JSON array)
-- geo_facet (STRING, JSON array)
+### currency_pairs
+Primary table containing currency pair information:
+- currency_pair_id (STRING, Primary Key)
+- base_currency (STRING)
+- target_currency (STRING)
+- pair_name (STRING)
+- is_major_pair (STRING)
+- last_updated (STRING)
 
-### media
-Table containing media information:
-- media_id (STRING, Primary Key)
-- article_id (STRING)
-- article_title (STRING)
-- type (STRING)
-- subtype (STRING)
-- caption (STRING)
-- copyright (STRING)
-- url (STRING)
-- format (STRING)
-- height (INTEGER)
-- width (INTEGER)
+### latest_rates
+Table containing real-time exchange rates:
+- rate_id (STRING, Primary Key)
+- currency_pair_id (STRING)
+- base_currency (STRING)
+- target_currency (STRING)
+- exchange_rate (STRING)
+- timestamp (STRING)
+- last_updated (STRING)
+
+### historical_rates
+Table containing simulated historical exchange rates:
+- rate_id (STRING, Primary Key)
+- currency_pair_id (STRING)
+- base_currency (STRING)
+- target_currency (STRING)
+- exchange_rate (STRING)
+- date (STRING)
+
+Note: Since we are using the ExchangeRate free tier, historical rates are simulated based on current rates with small variations to provide trend analysis capabilities.
 
 ## Troubleshooting
 
@@ -407,13 +416,15 @@ Table containing media information:
 Error retrieving API key: 'No API key found in configuration'
 ```
 - Verify API key in configuration.json
+- Check API key validity on ExchangeRate API dashboard
 
 2. Rate Limiting:
 ```
 API request failed: 429 Too Many Requests
 ```
 - Automatic retry will handle this
-- Check API quota limits
+- Check your API quota limits
+- Consider upgrading plan if hitting limits frequently
 
 3. Directory Structure:
 ```
@@ -421,6 +432,7 @@ No such file or directory: 'files/configuration.json'
 ```
 - Ensure debug.sh has created the files directory
 - Check file permissions
+- Verify configuration files are copied correctly
 
 4. Python Environment:
 ```
@@ -430,125 +442,113 @@ ModuleNotFoundError: No module named 'fivetran_connector_sdk'
 - Reinstall SDK if necessary
 
 ## Security Notes
-- Never commit API keys
-- Use .gitignore for sensitive files
-- Keep virtual environment isolated
+- Never commit API keys to version control
+- Keep configuration files secure
+- Monitor API usage and quotas
+- Follow security best practices for credential management
 
 ## Development Notes
 - Make code changes in connector.py
 - Test changes using debug.sh
 - Monitor logs for issues
-- Follow NYT API guidelines
+- Follow ExchangeRate API guidelines
 - Use the Fivetran SDK documentation for reference
 
 ## Support
 For issues or questions:
-1. Check [NYT API Documentation](https://developer.nytimes.com/docs/most-popular-product/1/overview)
+1. Check [ExchangeRate API Documentation](https://www.exchangerate-api.com/docs)
 2. Review [Fivetran Connector SDK Documentation](https://fivetran.com/docs/connectors/connector-sdk)
 3. Contact your Fivetran administrator
 
-## Bonus: Changing the Time Period
-Want to analyze articles from a different time period? Here's how to modify the connector for different time ranges:
+## Bonus: Changing Base Currency to EUR
+Want to analyze exchange rates with a different base currency? Here's how to modify the connector for EUR as base:
 
-1. Find the available time periods:
-   * 1 day: /viewed/1.json
-   * 7 days: /viewed/7.json
-   * 30 days: /viewed/30.json
-
-## Using the NYT Dataset - Visualization 1: Section Distribution Analysis
-
-### From a Databricks Notebook
-
-1. Copy and paste into cell 1 (update with your Unity Catalog and your schema name)
+1. Update the BASE_CURRENCY constant in connector.py:
 ```python
-from pyspark.sql.functions import *
-
-# Read the data from Unity Catalog and prepare for visualization
-df = spark.table("`ts-catalog-demo`.`nytmostpopular_0105_0429`.`articles`")
-
-# Create visualization data
-section_counts = df.groupBy("section") \
-    .agg(
-        count("*").alias("article_count"),
-        avg(size(from_json("des_facet", "array<string>"))).alias("avg_descriptors"),
-        countDistinct("subsection").alias("subsection_count")
-    ) \
-    .orderBy(desc("article_count"))
-
-display(section_counts)
+BASE_CURRENCY = 'EUR'
+MAJOR_CURRENCIES = ['USD', 'GBP', 'JPY', 'AUD']
 ```
 
-2. Click on the "+" to the right of "Table" and select visualization and then customize as needed.
+2. The connector will automatically:
+   * Use EUR as the base currency
+   * Calculate rates against other major currencies
+   * Maintain the same data structure and functionality
+   * Update all tables with the new currency perspective
 
-### Visualization Settings
-1. Select "Bar Chart"
-2. Configure settings:
-  * X-axis: section
-  * Y-axis: article_count
-  * Color: avg_descriptors
-  * Size: subsection_count
-  * Keys: section
-  * Title: "NYT Article Distribution by Section"
+Note: Ensure your API plan supports base currency changes.
 
-### Customization
-* Color gradient: Light Blue to Dark Blue (representing average descriptors)
-* Enable hover tooltips showing all metrics
-* Enable grid lines
-* X-axis label: "Section"
-* Y-axis label: "Number of Articles"
-* Rotate x-axis labels 45 degrees for better readability
-* Add section names as data labels
+## Using the Exchange Rate Dataset
 
-This visualization creates a bar chart showing the distribution of articles across different sections, with color intensity indicating the average number of descriptors and size showing subsection diversity.
+### Visualization 1: Exchange Rate Trends Analysis
 
-![NYT Sync Status](images/article_dist.png)
+From a Databricks Notebook:
 
-## Using the NYT Dataset - Visualization 2: Media Format Analysis
-
-### From a Databricks Notebook
-
-1. Copy and paste into cell 2 (update with your Unity Catalog and your schema name)
+1. Copy and paste into cell 1:
 ```python
 from pyspark.sql.functions import *
 
 # Read the data from Unity Catalog
-df = spark.table("`ts-catalog-demo`.`nytmostpopular_0105_0429`.`media`")
+df = spark.table("`ts-catalog-demo`.`exchangerate_0106_0512`.`historical_rates`")
 
-# Create visualization data
-media_analysis = df.groupBy("format") \
+# Create visualization data for exchange rate trends
+rate_trends = df.groupBy("date", "currency_pair_id") \
     .agg(
-        count("*").alias("image_count"),
-        avg("width").alias("avg_width"),
-        avg("height").alias("avg_height"),
-        countDistinct("article_id").alias("unique_articles")
+        avg("exchange_rate").cast("double").alias("exchange_rate")
     ) \
-    .withColumn("aspect_ratio", col("avg_width") / col("avg_height")) \
-    .orderBy("format")
+    .orderBy("date", "currency_pair_id")
 
-display(media_analysis)
+display(rate_trends)
 ```
 
-2. Click on the "+" to the right of "Table" and select visualization and then customize as needed.
-
 ### Visualization Settings
-1. Select "Scatter Plot"
+1. Select "Line Chart"
 2. Configure settings:
-  * X-axis: avg_width
-  * Y-axis: avg_height
-  * Size: image_count
-  * Color: unique_articles
-  * Keys: format
-  * Title: "NYT Media Format Analysis"
+  * X-axis: date
+  * Y-axis: exchange_rate
+  * Group by: currency_pair_id
+  * Title: "Exchange Rate Trends Over Time"
 
 ### Customization
-* Color gradient: Yellow to Red (representing number of unique articles)
-* Enable hover tooltips showing all metrics
+* Color scheme: Blue gradient for different currency pairs
+* Enable hover tooltips showing exact rates
 * Enable grid lines
-* X-axis label: "Average Width (pixels)"
-* Y-axis label: "Average Height (pixels)"
-* Add format labels next to each point
-* Set point size based on image_count for visual impact
+* Y-axis label: "Exchange Rate (USD Base)"
+* Add currency pair labels to legend
 
-This visualization creates a scatter plot showing the relationship between image dimensions across different formats, with point size indicating frequency of use and color showing format popularity across articles.
+![Exchange Rate Sync Status](images/exchange_rate_trends.png)
 
-![NYT Sync Status](images/media_format.png)
+### Visualization 2: Currency Pair Rate Distribution
+
+1. Copy and paste into cell 2:
+```python
+from pyspark.sql.functions import *
+
+# Read the data from Unity Catalog
+df_hist = spark.table("`ts-catalog-demo`.`exchangerate_0106_0512`.`historical_rates`")
+df_latest = spark.table("`ts-catalog-demo`.`exchangerate_0106_0512`.`latest_rates`")
+
+# Combine historical and latest data
+rate_analysis = df_hist.groupBy("currency_pair_id") \
+    .agg(
+        min("exchange_rate").cast("double").alias("min_rate"),
+        max("exchange_rate").cast("double").alias("max_rate"),
+        avg("exchange_rate").cast("double").alias("avg_rate"),
+        count("*").alias("data_points")
+    ) \
+    .orderBy("currency_pair_id")
+
+display(rate_analysis)
+```
+
+### Visualization Settings
+1. Select "Bar Chart"
+2. Configure settings:
+  * X-axis: currency_pair_id
+  * Y-axis: avg_rate
+  * Color: data_points
+  * Error bars: min_rate, max_rate
+  * Title: "Exchange Rate Distribution by Currency Pair"
+
+Note: Visualizations include both real-time rates and simulated historical data to provide trend analysis.
+
+![Exchange Rate Sync Status](images/exchange_rate_dist.png)

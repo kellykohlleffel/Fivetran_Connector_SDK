@@ -27,6 +27,9 @@ The Fivetran Connector SDK enables you to:
 ### 💰 Crypto Markets (CoinGecko API)
 [CoinGecko API](https://www.coingecko.com/en/api) integration that syncs real-time cryptocurrency market data including prices, market caps, trading volumes, and historical metrics.
 
+### 💱 Exchange Rates (ExchangeRate API)  
+[ExchangeRate API](https://www.exchangerate-api.com/docs/overview) connector that retrieves real-time exchange rates for USD paired with EUR, GBP, JPY, and AUD. Includes simulated historical data for a 7-day trend analysis without requiring a paid API subscription.
+
 ### 🍳 Meals (TheMealDB API)
 [TheMealDB API](https://www.themealdb.com/api.php) connector that retrieves detailed meal information including names, categories, cuisines, instructions, and ingredients.
 
@@ -56,6 +59,7 @@ The Fivetran Connector SDK enables you to:
 examples/quick_start_examples/
 └── books           # OpenLibrary API connector
 └── crypto          # CoinGecko API connector
+└── exchangerate    # ExchangeRate API connector
 └── meals           # MealDB API connector
 └── movies          # TMDB API connector
 └── nationalparks   # NPS API connector
