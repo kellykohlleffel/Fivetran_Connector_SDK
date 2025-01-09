@@ -180,7 +180,7 @@ Contains documentation screenshots and images:
 
 ### Prerequisites
 * Python 3.8+
-* Fivetran Connector SDK
+* Fivetran Connector SDK and a virtual environment
 * Fivetran Account with at least one Fivetran destination setup
 
 ### Installation Steps

@@ -216,7 +216,7 @@ Contains documentation screenshots and images:
 
 ### Prerequisites
 - Python 3.8+
-- Fivetran Connector SDK
+- Fivetran Connector SDK and a virtual environment
 - CoinGecko API access
 - Fivetran Account with destination configured
 

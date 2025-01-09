@@ -267,7 +267,7 @@ __pycache__/
 
 ### Prerequisites
 - Python 3.8+
-- Fivetran Connector SDK
+- Fivetran Connector SDK and a virtual environment
 - NYT API Key (obtain from [NYT Developer Portal](https://developer.nytimes.com))
 - Fivetran Account with destination configured
 

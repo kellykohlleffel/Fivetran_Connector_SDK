@@ -329,7 +329,7 @@ Note: The make and model names in the URL are case-insensitive, so "HONDA", "Hon
 
 ### Prerequisites
 - Python 3.8+
-- Fivetran Connector SDK
+- Fivetran Connector SDK and a virtual environment
 - NHTSA API access
 - Fivetran Account with destination configured
 

@@ -281,7 +281,7 @@ __pycache__/
 
 ### Prerequisites
 - Python 3.8+
-- Fivetran Connector SDK
+- Fivetran Connector SDK and a virtual environment
 - ExchangeRate API Key (obtain from [ExchangeRate API Developer Portal](https://www.exchangerate-api.com))
 - Fivetran Account with destination configured
 

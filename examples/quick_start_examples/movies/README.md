@@ -273,7 +273,7 @@ __pycache__/
 
 ### Prerequisites
 - Python 3.8+
-- Fivetran Connector SDK
+* Fivetran Connector SDK and a virtual environment
 - TMDB API Key (obtain from [TMDB Developer Portal](https://www.themoviedb.org/settings/api))
 - Fivetran Account with destination configured
 

@@ -288,7 +288,7 @@ __pycache__/
 
 ### Prerequisites
 - Python 3.8+
-- Fivetran Connector SDK
+- Fivetran Connector SDK and a virtual environment
 - NPS API Key (obtain from [NPS Developer Portal](https://www.nps.gov/subjects/developer/get-started.htm))
 - Fivetran Account with at least one Fivetran destination setup
 
