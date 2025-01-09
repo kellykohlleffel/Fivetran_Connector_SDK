@@ -75,7 +75,7 @@ Each API response is processed with:
 #### Update Function Implementation
 The update function orchestrates a streamlined data sync process:
 1. Configuration Handling
-  - Loads configuration from spec.json if not provided
+  - Loads vehicle configuration that is set in connector.py
   - Validates make, model, and year parameters
   - Prepares API request parameters
 
@@ -143,7 +143,6 @@ vehicles/
 ├── debug.sh
 ├── deploy.sh
 ├── README.md
-└── spec.json
 ```
 ## File Details
 
@@ -197,17 +196,27 @@ Debug script for local testing:
 #!/bin/bash
 echo "Starting debug process..."
 
+# Clear Python cache
+echo "Clearing Python cache..."
+find . -type d -name "__pycache__" -exec rm -r {} +
+
+# Run fivetran reset
 echo "Running fivetran reset..."
 fivetran reset
 
-echo "Creating files directory..."
+# Ensure files directory exists
+echo "Ensuring files directory exists..."
 mkdir -p files
 
+# List contents of the files directory
 echo "Contents of files directory:"
 ls -la files/
 
+# Run fivetran debug
 echo "Running fivetran debug..."
 fivetran debug
+
+echo "Debug process complete."
 ```
 
 ### files/state.json
@@ -220,26 +229,19 @@ DuckDB database used for local testing.
 Contains documentation screenshots and images.
 
 ## Configuration
-When setting defaults in spec.json:
-- make_name can be any case (e.g., "toyota" or "TOYOTA") - will be converted to lowercase
-- model_filter can be any case (e.g., "TUNDRA" or "tundra") - case is handled automatically
+The connector is preconfigured with the following default values in `connector.py`:
 
-To change makes and models:
-1. Edit the "default" values in spec.json:
-   ```json
-   {
-     "make_name": {
-       "type": "string",
-       "default": "toyota"     // Change to any manufacturer supported by NHTSA
-     },
-     "model_filter": {
-       "type": "string",
-       "default": "tundra"     // Change to any model for the specified make
-     }
-   }
-   ```
-2. Run debug.sh to test the new configuration
-3. Deploy when ready
+    make_name = "toyota"       # Set the vehicle make
+    model_filter = "tundra"    # Set the vehicle model
+    start_year = 2022          # Set the starting year
+    end_year = 2022            # Set the ending year
+
+To customize the configuration:
+
+1. Open `connector.py`.
+2. Update the values for `make_name`, `model_filter`, `start_year`, and `end_year` directly in the script.
+3. Save your changes.
+4. Run `debug.sh` to test the new configuration or `deploy.sh` to deploy the updated connector.
 
 ### Example NHTSA Database Verified Make/Model Combinations (2022 Model Year)
 
@@ -276,13 +278,15 @@ To change makes and models:
 | Dodge         | Challenger   | Coupe          | USA       |
 | Cadillac      | Escalade     | SUV            | USA       |
 
-Note: All combinations have been verified in the NHTSA database for the **2022** model year. When using these in spec.json, remember that make names and model names are case-insensitive.
+Note: All combinations have been verified in the NHTSA database for the **2022** model year.
 
 Important Notes:
-- Configuration changes must be made in spec.json before running debug or deployment
-- Each debug run will use the current values in spec.json
-- Make names are case-insensitive
-- Model names are case-insensitive
+- Configuration changes must be made in connector.py before running debug or deployment
+    -  Make Name: `toyota`
+    - Model Filter: `tundra`
+    - Start Year: `2022`
+    - End Year: `2022`
+- Make names and model names are case-insensitive
 - Only one model can be selected at a time unless using "ALL"
 - Year range must be between 1995 and 2024
 - Test combinations with NHTSA API to ensure data availability
@@ -321,53 +325,6 @@ https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/toyota/modelye
 
 Note: The make and model names in the URL are case-insensitive, so "HONDA", "Honda", and "honda" will all work.
 
-## spec.json
-Main specification file defining the connector configuration schema:
-```json
-{
-    "version": 1,
-    "schema": {
-      "type": "object",
-      "properties": {
-        "make_name": {
-          "type": "string",
-          "title": "Vehicle Make",
-          "description": "The vehicle manufacturer to fetch data for (e.g., toyota, honda, ford)",
-          "default": "toyota",
-          "order": 1
-        },
-        "start_year": {
-          "type": "integer",
-          "title": "Start Year",
-          "description": "The starting year of the model range to fetch",
-          "default": 2022,
-          "minimum": 1995,
-          "maximum": 2024,
-          "order": 2
-        },
-        "end_year": {
-          "type": "integer",
-          "title": "End Year",
-          "description": "The ending year of the model range to fetch",
-          "default": 2022,
-          "minimum": 1995,
-          "maximum": 2024,
-          "order": 3
-        },
-        "model_filter": {
-          "type": "string",
-          "title": "Model Filter",
-          "description": "Select specific model or ALL models (e.g., ALL, CAMRY, RAV4, TUNDRA)",
-          "enum": ["ALL", "CAMRY", "COROLLA", "RAV4", "TUNDRA", "HIGHLANDER", "TACOMA"],
-          "default": "TUNDRA",
-          "order": 4
-        }
-      },
-      "required": ["start_year", "end_year", "model_filter"]
-    }
-}
-```
-
 ## Setup Instructions
 
 ### Prerequisites
@@ -378,53 +335,71 @@ Main specification file defining the connector configuration schema:
 
 ### Installation Steps
 1. Create project directory:
-```bash
-mkdir -p vehicles
-cd vehicles
-```
+    ```bash
+    mkdir -p vehicles
+    cd vehicles
+    ```
 
 2. Create virtual environment:
-```bash
-python3 -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-```
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate  # Windows: .venv\Scripts\activate
+    ```
 
 3. Install SDK:
-```bash
-pip install fivetran-connector-sdk requests
-```
+    ```bash
+    pip install fivetran-connector-sdk requests
+    ```
 
-4. Create necessary files:
-```bash
-touch connector.py spec.json
-```
+4. Clone the repository or create necessary files:
+    ```bash
+    git clone <repository-url> .  # If applicable
+    touch connector.py
+    ```
 
 5. Create debug script:
-```bash
-echo '#!/bin/bash
-echo "Starting debug process..."
+    ```bash
+    #!/bin/bash
+    echo "Starting debug process..."
 
-echo "Clearing Python cache..."
-find . -type d -name "__pycache__" -exec rm -r {} +
+    # Clear Python cache
+    echo "Clearing Python cache..."
+    find . -type d -name "__pycache__" -exec rm -r {} +
 
-echo "Running fivetran reset..."
-fivetran reset
+    # Run fivetran reset
+    echo "Running fivetran reset..."
+    fivetran reset
 
-echo "Creating files directory..."
-mkdir -p files
+    # Ensure files directory exists
+    echo "Ensuring files directory exists..."
+    mkdir -p files
 
-echo "Contents of files directory:"
-ls -la files/
+    # List contents of the files directory
+    echo "Contents of files directory:"
+    ls -la files/
 
-echo "Running fivetran debug..."
-fivetran debug' > debug.sh
+    # Run fivetran debug
+    echo "Running fivetran debug..."
+    fivetran debug
 
-chmod +x debug.sh
-```
+    echo "Debug process complete."
+    ```
 
-Note: The debug.sh script includes cache clearing to ensure configuration changes are properly picked up between runs.
+    Note: The debug.sh script includes cache clearing to ensure configuration changes are properly picked up between runs.
 
 ## Usage
+
+### Update connector.py with your desired vehicle
+
+To configure the connector for your desired vehicle, edit the following section in `connector.py`:
+
+```python
+# Extract parameters from configuration
+make_name = "toyota"       # Set the vehicle make
+model_filter = "tundra"    # Set the vehicle model
+start_year = 2022          # Set the starting year
+end_year = 2022            # Set the ending year
+```
 
 ### Local Testing
 ```bash
@@ -510,7 +485,6 @@ API request failed with status 404
 ```
 Invalid configuration parameters
 ```
-- Verify spec.json settings
 - Check make/model filters
 
 3. Python Environment:

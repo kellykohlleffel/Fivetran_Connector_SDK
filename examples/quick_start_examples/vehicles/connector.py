@@ -50,34 +50,15 @@ def get_vehicle_recalls(make: str, model: str, year: int) -> List[Dict]:
         log.info(f"No recalls found for {make} {model} {year}")
     return results
 
-
-def load_configuration() -> dict:
-    """
-    Load default configuration values from spec.json.
-    """
-    try:
-        with open("spec.json", "r") as spec_file:
-            spec = json.load(spec_file)
-            config = {key: prop.get("default") for key, prop in spec["schema"]["properties"].items()}
-            log.info(f"Loaded configuration from spec.json: {config}")
-            return config
-    except Exception as e:
-        log.info(f"Error loading spec.json: {str(e)}")
-        return {}
-
-
 def update(configuration: dict, state: dict):
     try:
-        # Load configuration from spec.json if not provided
-        if not configuration:
-            log.info("Configuration is empty. Loading from spec.json.")
-            configuration = load_configuration()
+        # Extract parameters from configuration with explicit defaults
+        make_name = "toyota"  # Input the make you want to use for recall data
+        model_filter = "tundra"  # Input the model you want to use for recall data
+        start_year = 2022  # Input the start year model you want to use for recall data
+        end_year = 2022  # Input the end year model you want to use for recall data
 
-        # Extract parameters from configuration
-        make_name = configuration.get("make_name", "ford").lower()
-        model_filter = configuration.get("model_filter", "f-150").lower()
-        start_year = configuration.get("start_year", 2022)
-        end_year = configuration.get("end_year", 2022)
+        log.info(f"Using connector.py vehicle configuration: make={make_name}, model={model_filter}, start_year={start_year}, end_year={end_year}")
 
         # Process recalls for the specified range
         for year in range(start_year, end_year + 1):
@@ -111,7 +92,6 @@ def update(configuration: dict, state: dict):
     except Exception as e:
         log.info(f"Error during update: {e}")
         raise
-
 
 # Create connector instance
 connector = Connector(update=update, schema=schema)
