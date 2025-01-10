@@ -546,7 +546,7 @@ This Streamlit in Snowflake application provides interactive analysis of vehicle
 
 ### Streamlit in Snowflake Code Block
 
-```
+```python
 # Vehicle Recalls Analysis Application
 # A Streamlit in Snowflake application visualizing NHTSA vehicle recall data.
 import streamlit as st
