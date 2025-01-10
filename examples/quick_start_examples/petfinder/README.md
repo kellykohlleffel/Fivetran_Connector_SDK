@@ -7,7 +7,7 @@ The connector uses Python to interact with the Petfinder API and is deployed as 
 
 See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
 
-![Sync Status](images/fivetran_sync.png)
+![Sync Status](images/petfinder_sync.png)
 
 ## Attribution
 <img src="images/petfinder_logo.png" alt="Petfinder Logo" width="200"/>
