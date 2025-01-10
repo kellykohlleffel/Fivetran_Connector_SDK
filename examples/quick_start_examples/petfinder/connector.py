@@ -20,125 +20,147 @@ def create_retry_session():
     session.mount('https://', HTTPAdapter(max_retries=retries))
     return session
 
-def get_api_key(configuration):
-    """Retrieve the API key from the configuration."""
+def get_credentials(configuration):
+    """Retrieve the credentials from the configuration."""
     try:
-        api_key = configuration.get('api_key')
-        if not api_key:
-            raise KeyError("No API key found in configuration")
-        return str(api_key)
+        client_id = configuration.get('client_id')
+        client_secret = configuration.get('client_secret')
+        if not client_id or not client_secret:
+            raise KeyError("Missing client_id or client_secret in configuration")
+        return str(client_id), str(client_secret)
     except Exception as e:
-        raise KeyError(f"Error retrieving API key: {str(e)}")
+        raise KeyError(f"Error retrieving credentials: {str(e)}")
+
+def get_auth_token(client_id, client_secret):
+    """Get OAuth token from Petfinder API"""
+    try:
+        auth_url = "https://api.petfinder.com/v2/oauth2/token"
+        data = {
+            "grant_type": "client_credentials",
+            "client_id": client_id,
+            "client_secret": client_secret
+        }
+        
+        response = rq.post(auth_url, data=data)
+        response.raise_for_status()
+        return response.json().get("access_token")
+    except Exception as e:
+        Logging.warning(f"Error getting auth token: {str(e)}")
+        raise
 
 def schema(configuration: dict):
-    """Define the table schemas for Fivetran."""
+    """Define the table schema for Fivetran."""
     return [
         {
-            "table": "articles",
+            "table": "dogs",
             "primary_key": ["id"],
-            "columns": {}  # Let Fivetran infer data types
-        },
-        {
-            "table": "media",
-            "primary_key": ["media_id"],
             "columns": {}  # Let Fivetran infer data types
         }
     ]
 
-def make_api_request(session, endpoint, params):
+def make_api_request(session, endpoint, headers, params=None):
     """Make API request with error handling and logging"""
     try:
-        base_url = "https://api.nytimes.com/svc/mostpopular/v2"
+        base_url = "https://api.petfinder.com/v2"
         full_url = f"{base_url}{endpoint}"
         
-        log_params = params.copy()
-        if 'api-key' in log_params:
-            log_params['api-key'] = '***'
+        log_params = params.copy() if params else {}
         
         Logging.warning(f"Making request to {endpoint} with params: {log_params}")
-        response = session.get(full_url, params=params, timeout=30)
+        response = session.get(full_url, headers=headers, params=params, timeout=30)
         response.raise_for_status()
         data = response.json()
         
         return data
     except rq.exceptions.RequestException as e:
         Logging.warning(f"API request failed for {endpoint}: {str(e)}")
-        if hasattr(response, 'status_code') and response.status_code == 429:
-            Logging.warning("Rate limit hit, waiting 60 seconds...")
-            time.sleep(60)
-            return make_api_request(session, endpoint, params)
-        return {"results": []}
+        if hasattr(response, 'status_code'):
+            if response.status_code == 429:
+                Logging.warning("Rate limit hit, waiting 60 seconds...")
+                time.sleep(60)
+                return make_api_request(session, endpoint, headers, params)
+            elif response.status_code == 401:
+                Logging.warning("Authentication token expired, please refresh")
+                raise
+        return {"animals": []}
 
 def update(configuration: dict, state: dict):
-    """Retrieve data from the NYT Most Popular API."""
+    """Retrieve dog data from the Petfinder API."""
     session = create_retry_session()
     try:
-        API_KEY = get_api_key(configuration)
+        client_id, client_secret = get_credentials(configuration)
+        auth_token = get_auth_token(client_id, client_secret)
         
-        # Get most viewed articles for last 7 days
-        Logging.warning("Starting NYT most viewed articles sync")
-        params = {
-            "api-key": API_KEY
+        headers = {
+            "Authorization": f"Bearer {auth_token}"
         }
         
-        articles_data = make_api_request(session, "/viewed/7.json", params)
-        articles = articles_data.get("results", [])
+        Logging.warning("Starting sync for dogs")
+        total_dogs_processed = 0
         
-        Logging.warning(f"Found {len(articles)} articles")
-        
-        media_id_counter = 1  # For generating unique media IDs
-        
-        for article in articles:
-            # Process article
-            article_data = {
-                "id": article.get("id"),
-                "url": article.get("url"),
-                "title": article.get("title"),
-                "abstract": article.get("abstract"),
-                "published_date": article.get("published_date"),
-                "updated_date": article.get("updated"),
-                "section": article.get("section"),
-                "subsection": article.get("subsection"),
-                "byline": article.get("byline"),
-                "type": article.get("type"),
-                "adx_keywords": article.get("adx_keywords"),
-                "views": article.get("views"),
-                "des_facet": json.dumps(article.get("des_facet", [])),
-                "org_facet": json.dumps(article.get("org_facet", [])),
-                "per_facet": json.dumps(article.get("per_facet", [])),
-                "geo_facet": json.dumps(article.get("geo_facet", []))
+        # Get dogs with pagination
+        page = 1
+        while page <= 5:  # Limit to 5 pages to manage API calls
+            params = {
+                "type": "dog",
+                "page": page,
+                "limit": 100,  # Maximum allowed by API
+                "sort": "recent"  # Get most recently added/updated dogs
             }
             
-            yield op.upsert(
-                table="articles",
-                data=article_data
-            )
+            data = make_api_request(session, "/animals", headers, params)
+            dogs = data.get("animals", [])
             
-            # Process media
-            for media_item in article.get("media", []):
-                for metadata in media_item.get("media-metadata", []):
-                    media_data = {
-                        "media_id": f"{article.get('id')}_{media_id_counter}",
-                        "article_id": article.get("id"),
-                        "article_title": article.get("title"),  # Adding article title for easier joins/queries
-                        "type": media_item.get("type"),
-                        "subtype": media_item.get("subtype"),
-                        "caption": media_item.get("caption"),
-                        "copyright": media_item.get("copyright"),
-                        "url": metadata.get("url"),
-                        "format": metadata.get("format"),
-                        "height": metadata.get("height"),
-                        "width": metadata.get("width")
-                    }
-                    
-                    yield op.upsert(
-                        table="media",
-                        data=media_data
-                    )
-                    media_id_counter += 1
+            if not dogs:
+                break
             
-            time.sleep(0.25)  # Rate limiting
+            page_dog_count = len(dogs)
+            Logging.warning(f"Processing {page_dog_count} dogs from page {page}")
+            
+            for dog in dogs:
+                # Extract breeds data
+                breeds = dog.get("breeds", {})
+                
+                # Process dog data with simplified schema
+                dog_data = {
+                    "id": dog.get("id"),
+                    "name": dog.get("name"),
+                    "age": dog.get("age"),
+                    "gender": dog.get("gender"),
+                    "size": dog.get("size"),
+                    "coat": dog.get("coat"),
+                    "status": dog.get("status"),
+                    "primary_breed": breeds.get("primary"),
+                    "secondary_breed": breeds.get("secondary"),
+                    "mixed_breed": breeds.get("mixed", False),
+                    "colors_primary": dog.get("colors", {}).get("primary"),
+                    "colors_secondary": dog.get("colors", {}).get("secondary"),
+                    "colors_tertiary": dog.get("colors", {}).get("tertiary"),
+                    "organization_id": dog.get("organization_id"),
+                    "description": dog.get("description"),
+                    "tags": json.dumps(dog.get("tags", [])),
+                    "city": dog.get("contact", {}).get("address", {}).get("city"),
+                    "state": dog.get("contact", {}).get("address", {}).get("state"),
+                    "distance": dog.get("distance"),
+                    "published_at": dog.get("published_at"),
+                    "last_updated": datetime.utcnow().isoformat()
+                }
+                
+                yield op.upsert(
+                    table="dogs",
+                    data=dog_data
+                )
+            
+            total_dogs_processed += page_dog_count
+            Logging.warning(f"Total dogs processed so far: {total_dogs_processed}")
+            
+            if page_dog_count < 100:  # If we get less than the maximum, we've reached the end
+                break
+                
+            page += 1
+            time.sleep(1)  # Rate limiting between pages
         
+        Logging.warning(f"Sync complete. Processed {total_dogs_processed} dogs")
         yield op.checkpoint(state={})
         
     except Exception as e:
@@ -149,6 +171,6 @@ def update(configuration: dict, state: dict):
 connector = Connector(update=update, schema=schema)
 
 if __name__ == "__main__":
-    Logging.warning("Starting NYT connector debug run...")
+    Logging.warning("Starting Petfinder dogs connector debug run...")
     connector.debug()
     Logging.warning("Debug run complete.")

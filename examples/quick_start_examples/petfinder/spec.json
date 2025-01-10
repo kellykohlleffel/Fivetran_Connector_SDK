@@ -2,11 +2,17 @@
     "configVersion": 1,
     "connectionSpecification": {
         "type": "object",
-        "required": ["api_key"],
+        "required": ["client_id", "client_secret"],
         "properties": {
-            "api_key": {
+            "client_id": {
                 "type": "string",
-                "description": "Enter your NYT API key",
+                "description": "Enter your Petfinder API key (Client ID)",
+                "configurationGroupKey": "Authentication",
+                "secret": true
+            },
+            "client_secret": {
+                "type": "string",
+                "description": "Enter your Petfinder Client Secret",
                 "configurationGroupKey": "Authentication",
                 "secret": true
             }

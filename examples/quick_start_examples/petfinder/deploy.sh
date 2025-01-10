@@ -10,8 +10,8 @@ while [[ "$CONFIG_PATH" != "/" ]]; do
 done
 
 # Prompt for the Fivetran Account Name
-read -p "Enter your Fivetran Account Name [MDS_DATABRICKS_HOL]: " ACCOUNT_NAME
-ACCOUNT_NAME=${ACCOUNT_NAME:-"MDS_DATABRICKS_HOL"}
+read -p "Enter your Fivetran Account Name [MDS_SNOWFLAKE_HOL]: " ACCOUNT_NAME
+ACCOUNT_NAME=${ACCOUNT_NAME:-"MDS_SNOWFLAKE_HOL"}
 
 # Read API key from config.json based on account name
 API_KEY=$(jq -r ".fivetran.api_keys.$ACCOUNT_NAME" "$CONFIG_PATH/config.json")
@@ -22,8 +22,8 @@ if [ "$API_KEY" == "null" ]; then
 fi
 
 # Prompt for the Fivetran Destination Name
-read -p "Enter your Fivetran Destination Name [DATABRICKS_UNITY_CATALOG_SERVERLESS]: " DESTINATION_NAME
-DESTINATION_NAME=${DESTINATION_NAME:-"DATABRICKS_UNITY_CATALOG_SERVERLESS"}
+read -p "Enter your Fivetran Destination Name [NEW_SALES_ENG_HANDS_ON_LAB]: " DESTINATION_NAME
+DESTINATION_NAME=${DESTINATION_NAME:-"NEW_SALES_ENG_HANDS_ON_LAB"}
 
 # Prompt for the Fivetran Connector Name
 read -p "Enter a unique Fivetran Connector Name [default-connection]: " CONNECTION_NAME
