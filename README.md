@@ -54,6 +54,9 @@ The Fivetran Connector SDK enables you to:
 ### 🚀 SpaceX (SpaceX API)
 [SpaceX API](https://github.com/r-spacex/SpaceX-API/tree/master/docs) custom connector retrieving comprehensive SpaceX information about launches, rockets, and capsules.
 
+### 🚘 Vehicle and Recall Data (NHTSA API)  
+[NHTSA API](https://vpic.nhtsa.dot.gov/api/) custom connector that syncs detailed vehicle information, including make and model details, specifications, and recall notices.
+
 ### 💧 Water (USGS Water Services API)
 [USGS Water Services API](https://waterservices.usgs.gov/docs/) custom connector syncing water data from Brazos River monitoring sites in Texas, including streamflow, gauge height, and temperature measurements.
 
@@ -63,20 +66,23 @@ The Fivetran Connector SDK enables you to:
 ## Repository Structure
 ```
 examples/quick_start_examples/
-└── books           # OpenLibrary API connector
-└── crypto          # CoinGecko API connector
-└── exchangerate    # ExchangeRate API connector
-└── meals           # MealDB API connector
-└── movies          # TMDB API connector
-└── nationalparks   # NPS API connector
-└── nytmostpopular  # New York Times (NYT) API connector
-└── solarsystem     # Solar System OpenData connector
-└── spacex          # SpaceX API connector
-└── water           # USGS Water Services connector
-└── weather         # National Weather Service connector
-├── .gitattributes  # Git attributes configuration
-├── .gitignore      # Git ignore rules
-├── README.md       # This documentation
+└── bestbuy_products  # BestBuy Products API connector
+└── books             # OpenLibrary API connector
+└── crypto            # CoinGecko API connector
+└── exchangerate      # ExchangeRate API connector
+└── meals             # MealDB API connector
+└── movies            # TMDB API connector
+└── nationalparks     # NPS API connector
+└── nytmostpopular    # New York Times (NYT) API connector
+└── petfinder         # Petfinder powered by Purina API connector
+└── solarsystem       # Solar System OpenData connector
+└── spacex            # SpaceX API connector
+└── vehicles          # NHTSA API connector
+└── water             # USGS Water Services connector
+└── weather           # National Weather Service connector
+├── .gitattributes    # Git attributes configuration
+├── .gitignore        # Git ignore rules
+├── README.md         # This documentation
 ```
 
 ## Getting Started
