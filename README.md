@@ -21,6 +21,9 @@ The Fivetran Connector SDK enables you to:
 
 ## Quick Start Examples
 
+### 📺 BestBuy TV Products (BestBuy Products API)  
+[BestBuy Products API](https://developer.bestbuy.com/) custom connector that syncs detailed tv product data, including specifications, pricing, customer reviews, and product features.
+
 ### 📚 Books (OpenLibrary API)
 [OpenLibrary API](https://openlibrary.org/developers/api) custom connector that syncs comprehensive book information including titles, authors, publication dates, ISBNs, and publisher details.
 
