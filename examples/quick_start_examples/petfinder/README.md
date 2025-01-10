@@ -1,9 +1,9 @@
 # Fivetran_Connector_SDK: Petfinder API
 
 ## Overview
-This Fivetran custom connector leverages the Fivetran Connector SDK to retrieve dog adoption data from the [Petfinder API](https://www.petfinder.com/developers/v2/docs/). The connector focuses on extracting detailed information about adoptable dogs, including breed, size, age, location, and status information.
+This Fivetran custom connector leverages the Fivetran Connector SDK to retrieve dog adoption data from the [Purina Petfinder API](https://www.petfinder.com/developers/v2/docs/). The connector focuses on extracting detailed information about adoptable dogs, including breed, size, age, location, and status information.
 
-The connector uses Python to interact with the Petfinder API and is deployed as a Fivetran extension. Fivetran automatically manages the connector's execution schedule, compute resources, orchestration, scaling, resyncs, and log management. Additionally, Fivetran handles comprehensive writing to your chosen destination, managing retries, schema inference, security, and idempotency.
+The connector uses Python to interact with the Purina Petfinder API and is deployed as a Fivetran extension. Fivetran automatically manages the connector's execution schedule, compute resources, orchestration, scaling, resyncs, and log management. Additionally, Fivetran handles comprehensive writing to your chosen destination, managing retries, schema inference, security, and idempotency.
 
 See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
 
@@ -13,7 +13,7 @@ See the [Technical Reference documentation](https://fivetran.com/docs/connectors
 <img src="images/petfinder_logo.png" alt="Petfinder Logo" width="200"/>
 
 
-This custom connector uses the Petfinder API but is not endorsed or certified by Petfinder. For more information about Petfinder API terms of use and attribution requirements, please visit:
+This custom connector uses the Petfinder API but is not endorsed or certified by Purina Petfinder. For more information about the Purina Petfinder API terms of use and attribution requirements, please visit:
 [Petfinder API Terms](https://www.petfinder.com/developers/v2/docs/)
 
 ## Features
