@@ -258,7 +258,7 @@ Main specification file defining the configuration schema:
 
 ### .gitignore
 Git ignore file containing:
-```
+```bash
 # Generated files
 files/
 warehouse.db/
