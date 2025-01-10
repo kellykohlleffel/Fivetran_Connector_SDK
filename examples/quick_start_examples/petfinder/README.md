@@ -423,7 +423,7 @@ For issues or questions:
 
 ### Required Setup
 
-1. Create CLEAN_DOGS Table
+1. Create a CLEAN_DOGS Table
 
 Open up a new Snowflake Snowsight worksheet and run this SQL to create a CLEAN_DOGS table that provides for:
 
