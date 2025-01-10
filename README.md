@@ -42,6 +42,9 @@ The Fivetran Connector SDK enables you to:
 ### 📰 NYT Most Popular Articles (NYT API)
 [NYT Most Popular API](https://developer.nytimes.com/docs/most-popular-product/1/overview) custom connector that syncs the most viewed articles from the past 7 days, including article metadata, sections, keywords, and associated media. 
 
+### 🐾 Pet Adoption (Petfinder Powered by Purina API)  
+[Petfinder Powered by Purina API](https://www.petfinder.com/developers/v2/docs/) custom connector that retrieves comprehensive dog adoption information, including breed, physical characteristics, location, and adoption status.  
+
 ### 🌍 Solar System (Solar System OpenData API)
 [Solar System OpenData API](https://api.le-systeme-solaire.net) custom connector providing celestial object data including names, types, orbital periods, and solar distances.
 
