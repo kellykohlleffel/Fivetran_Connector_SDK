@@ -82,6 +82,7 @@ examples/quick_start_examples/
 └── weather           # National Weather Service connector
 ├── .gitattributes    # Git attributes configuration
 ├── .gitignore        # Git ignore rules
+├── config.json       # Configuration file (local) for Fivetran Account API keys
 ├── README.md         # This documentation
 ```
 
