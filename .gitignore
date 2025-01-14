@@ -1,7 +1,6 @@
 # Configuration files with sensitive data
 config.json
-configuration.json
-config.template.json
+**/configuration.json
 
 # Database files
 files/warehouse.db
@@ -17,3 +16,7 @@ __pycache__/
 *$py.class
 .env
 .venv
+
+# Temporary and log files
+*.log
+files/
