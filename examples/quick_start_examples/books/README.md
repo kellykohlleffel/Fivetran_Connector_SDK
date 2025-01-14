@@ -106,35 +106,43 @@ Main connector implementation file that handles:
 ```bash
 #!/bin/bash
 
-# Find config.json by searching up through parent directories
+# Locate the root-level config.json file
+ROOT_CONFIG="config.json"
 CONFIG_PATH=$(pwd)
 while [[ "$CONFIG_PATH" != "/" ]]; do
-    if [[ -f "$CONFIG_PATH/config.json" ]]; then
+    if [[ -f "$CONFIG_PATH/$ROOT_CONFIG" ]]; then
         break
     fi
     CONFIG_PATH=$(dirname "$CONFIG_PATH")
 done
 
+# Validate the root config.json file exists
+if [[ ! -f "$CONFIG_PATH/$ROOT_CONFIG" ]]; then
+    echo "Error: Root config.json not found!"
+    exit 1
+fi
+
 # Prompt for the Fivetran Account Name
-read -p "Enter your Fivetran Account Name [MDS_DATABRICKS_HOL]: " ACCOUNT_NAME
-ACCOUNT_NAME=${ACCOUNT_NAME:-"MDS_DATABRICKS_HOL"}
+read -p "Enter your Fivetran Account Name [MDS_SNOWFLAKE_HOL]: " ACCOUNT_NAME
+ACCOUNT_NAME=${ACCOUNT_NAME:-"MDS_SNOWFLAKE_HOL"}
 
-# Read API key from config.json based on account name
-API_KEY=$(jq -r ".fivetran.api_keys.$ACCOUNT_NAME" "$CONFIG_PATH/config.json")
-
-if [ "$API_KEY" == "null" ]; then
-    echo "Error: Account name not found in config.json"
+# Fetch the API key from config.json
+API_KEY=$(jq -r ".fivetran.api_keys.$ACCOUNT_NAME" "$CONFIG_PATH/$ROOT_CONFIG")
+if [[ "$API_KEY" == "null" ]]; then
+    echo "Error: Account name not found in $ROOT_CONFIG!"
     exit 1
 fi
 
 # Prompt for the Fivetran Destination Name
-read -p "Enter your Fivetran Destination Name [DATABRICKS_UNITY_CATALOG_SERVERLESS]: " DESTINATION_NAME
-DESTINATION_NAME=${DESTINATION_NAME:-"DATABRICKS_UNITY_CATALOG_SERVERLESS"}
+read -p "Enter your Fivetran Destination Name [NEW_SALES_ENG_HANDS_ON_LAB]: " DESTINATION_NAME
+DESTINATION_NAME=${DESTINATION_NAME:-"NEW_SALES_ENG_HANDS_ON_LAB"}
 
 # Prompt for the Fivetran Connector Name
 read -p "Enter a unique Fivetran Connector Name [default-connection]: " CONNECTION_NAME
 CONNECTION_NAME=${CONNECTION_NAME:-"default-connection"}
 
+# Deploy the connector using the configuration file
+echo "Deploying connector..."
 fivetran deploy --api-key "$API_KEY" --destination "$DESTINATION_NAME" --connection "$CONNECTION_NAME"
 ```
 
@@ -143,17 +151,19 @@ fivetran deploy --api-key "$API_KEY" --destination "$DESTINATION_NAME" --connect
 #!/bin/bash
 echo "Starting debug process..."
 
-echo "Running fivetran reset..."
-fivetran reset
-
-echo "Creating files directory..."
+# Ensure files directory exists
+echo "Ensuring files directory exists..."
 mkdir -p files
 
+# List contents of the files directory
 echo "Contents of files directory:"
 ls -la files/
 
+# Run fivetran debug
 echo "Running fivetran debug..."
 fivetran debug
+
+echo "Debug process complete."
 ```
 
 ### images/
