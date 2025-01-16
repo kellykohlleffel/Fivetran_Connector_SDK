@@ -1,11 +1,12 @@
+import json
+import time
+from datetime import datetime
+from typing import Dict, List, Tuple
+
 import requests as rq
 from fivetran_connector_sdk import Connector
 from fivetran_connector_sdk import Logging as log
 from fivetran_connector_sdk import Operations as op
-from datetime import datetime
-import json
-from typing import Dict, List, Tuple
-
 
 def schema(configuration: dict):
     """
@@ -53,8 +54,8 @@ def get_vehicle_recalls(make: str, model: str, year: int) -> List[Dict]:
 def update(configuration: dict, state: dict):
     try:
         # Extract parameters from configuration with explicit defaults
-        make_name = "toyota"  # Input the make you want to use for recall data
-        model_filter = "tundra"  # Input the model you want to use for recall data
+        make_name = "jeep"  # Input the make you want to use for recall data
+        model_filter = "cherokee"  # Input the model you want to use for recall data
         start_year = 2020  # Input the start year model you want to use for recall data
         end_year = 2025  # Input the end year model you want to use for recall data
 
