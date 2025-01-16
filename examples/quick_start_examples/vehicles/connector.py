@@ -55,8 +55,8 @@ def update(configuration: dict, state: dict):
         # Extract parameters from configuration with explicit defaults
         make_name = "toyota"  # Input the make you want to use for recall data
         model_filter = "tundra"  # Input the model you want to use for recall data
-        start_year = 2022  # Input the start year model you want to use for recall data
-        end_year = 2022  # Input the end year model you want to use for recall data
+        start_year = 2020  # Input the start year model you want to use for recall data
+        end_year = 2025  # Input the end year model you want to use for recall data
 
         log.info(f"Using connector.py vehicle configuration: make={make_name}, model={model_filter}, start_year={start_year}, end_year={end_year}")
 
