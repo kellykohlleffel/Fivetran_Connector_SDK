@@ -33,6 +33,9 @@ The Fivetran Connector SDK enables you to:
 ### 💱 Exchange Rates (ExchangeRate API)  
 [ExchangeRate API](https://www.exchangerate-api.com/docs/overview) custom connector that retrieves real-time exchange rates for USD paired with EUR, GBP, JPY, and AUD. Includes simulated historical data for a 7-day trend analysis without requiring a paid API subscription.
 
+### 💊 FDA Drug Applications (OpenFDA API)
+[OpenFDA API](https://open.fda.gov/apis/drug/drugsfda/) custom connector that syncs comprehensive drug application data including dosage forms, routes of administration, product details, and sponsor information across multiple administration routes.
+
 ### 🍳 Meals (TheMealDB API)
 [TheMealDB API](https://www.themealdb.com/api.php) custom connector that retrieves detailed meal information including names, categories, cuisines, instructions, and ingredients.
 
@@ -70,6 +73,7 @@ examples/quick_start_examples/
 └── books             # OpenLibrary API connector
 └── crypto            # CoinGecko API connector
 └── exchangerate      # ExchangeRate API connector
+└── openFDA_drugs     # OpenFDA Drug Apps API connector
 └── meals             # MealDB API connector
 └── movies            # TMDB API connector
 └── nationalparks     # NPS API connector
