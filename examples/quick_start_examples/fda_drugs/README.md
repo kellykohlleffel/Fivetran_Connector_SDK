@@ -490,7 +490,20 @@ try:
     # Sidebar filters
     st.sidebar.header("Filters")
     
-    routes = ["All"] + sorted(drug_data["PRIMARY_ROUTE"].unique().tolist())
+    # Define allowed routes
+    allowed_routes = [
+        'ORAL',
+        'TOPICAL',
+        'INTRAVENOUS',
+        'INTRAMUSCULAR',
+        'SUBCUTANEOUS',
+        'OPHTHALMIC',
+        'NASAL',
+        'DENTAL',
+        'TRANSDERMAL'
+    ]
+    available_routes = drug_data[drug_data["PRIMARY_ROUTE"].isin(allowed_routes)]["PRIMARY_ROUTE"].unique().tolist()
+    routes = ["All"] + sorted(available_routes)
     selected_route = st.sidebar.selectbox("Select Route of Administration", routes)
     
     dosage_forms = ["All"] + sorted(drug_data["PRIMARY_DOSAGE_FORM"].unique().tolist())
