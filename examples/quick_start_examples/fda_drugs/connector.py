@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 import requests as rq
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 from fivetran_connector_sdk import Connector
 from fivetran_connector_sdk import Logging
 from fivetran_connector_sdk import Operations as op
