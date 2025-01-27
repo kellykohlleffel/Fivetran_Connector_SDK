@@ -192,6 +192,12 @@ if [[ ! -f "$CONFIG_PATH/$ROOT_CONFIG" ]]; then
     exit 1
 fi
 
+# Validate the local configuration.json file exists
+if [[ ! -f "configuration.json" ]]; then
+    echo "Error: Local configuration.json not found!"
+    exit 1
+fi
+
 # Prompt for the Fivetran Account Name
 read -p "Enter your Fivetran Account Name [MDS_SNOWFLAKE_HOL]: " ACCOUNT_NAME
 ACCOUNT_NAME=${ACCOUNT_NAME:-"MDS_SNOWFLAKE_HOL"}
@@ -213,7 +219,7 @@ CONNECTION_NAME=${CONNECTION_NAME:-"default-connection"}
 
 # Deploy the connector using the configuration file
 echo "Deploying connector..."
-fivetran deploy --api-key "$API_KEY" --destination "$DESTINATION_NAME" --connection "$CONNECTION_NAME"
+fivetran deploy --api-key "$API_KEY" --destination "$DESTINATION_NAME" --connection "$CONNECTION_NAME" --configuration configuration.json
 ```
 
 ### debug.sh
