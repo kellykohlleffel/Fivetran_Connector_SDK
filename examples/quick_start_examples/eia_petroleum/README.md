@@ -443,6 +443,7 @@ You can modify the connector's behavior by adjusting the configuration.json file
    - Controls how many records to fetch per route
    - Adjust based on your data needs and API quotas
    - Example: Set to 1000 for more historical data
+   - **Note**: Records are retrieved in descending order, starting from the most recent time period and working backwards. This ensures you always have the latest data within your record limit.
 
 ### Modifying Time Ranges:
 The connector's update function includes default time range parameters that you can adjust:
