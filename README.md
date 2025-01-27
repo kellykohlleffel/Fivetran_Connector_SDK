@@ -30,6 +30,9 @@ The Fivetran Connector SDK enables you to:
 ### 💰 Crypto Markets (CoinGecko API)
 [CoinGecko API](https://www.coingecko.com/en/api) custom connector that syncs real-time cryptocurrency market data including prices, market caps, trading volumes, and historical metrics.
 
+### 🛢️ Petroleum Production and Imports Data (EIA API)  
+[EIA API](https://www.eia.gov/opendata/documentation.php) custom connector that retrieves comprehensive petroleum data including crude oil reserves, production statistics, and import information across various regions and time periods for the U.S. Energy Information Administration API.
+
 ### 💱 Exchange Rates (ExchangeRate API)  
 [ExchangeRate API](https://www.exchangerate-api.com/docs/overview) custom connector that retrieves real-time exchange rates for USD paired with EUR, GBP, JPY, and AUD. Includes simulated historical data for a 7-day trend analysis without requiring a paid API subscription.
 
@@ -72,6 +75,7 @@ examples/quick_start_examples/
 └── bestbuy_products  # BestBuy Products API connector
 └── books             # OpenLibrary API connector
 └── crypto            # CoinGecko API connector
+└── eia_petroleum     # US Energy Information Administration API connector
 └── exchangerate      # ExchangeRate API connector
 └── openFDA_drugs     # OpenFDA Drug Apps API connector
 └── meals             # MealDB API connector
