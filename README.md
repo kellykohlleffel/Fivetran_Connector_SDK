@@ -51,6 +51,9 @@ The Fivetran Connector SDK enables you to:
 ### 📰 NYT Most Popular Articles (NYT API)
 [NYT Most Popular API](https://developer.nytimes.com/docs/most-popular-product/1/overview) custom connector that syncs the most viewed articles from the past 7 days, including article metadata, sections, keywords, and associated media. 
 
+### ⭕ Oura Ring (Oura API)
+[Oura API](https://cloud.ouraring.com/v2/docs) custom connector that syncs comprehensive health and wellness data including daily activity metrics, sleep patterns, and biometric measurements.
+
 ### 🐾 Pet Adoption (Petfinder Powered by Purina API)  
 [Petfinder Powered by Purina API](https://www.petfinder.com/developers/v2/docs/) custom connector that retrieves comprehensive dog adoption information, including breed, physical characteristics, location, and adoption status.  
 
@@ -82,6 +85,7 @@ examples/quick_start_examples/
 └── movies            # TMDB API connector
 └── nationalparks     # NPS API connector
 └── nytmostpopular    # New York Times (NYT) API connector
+└── oura              # Oura Ring API connector
 └── petfinder         # Petfinder powered by Purina API connector
 └── solarsystem       # Solar System OpenData connector
 └── spacex            # SpaceX API connector
