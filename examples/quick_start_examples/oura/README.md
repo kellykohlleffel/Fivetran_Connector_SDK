@@ -624,9 +624,9 @@ try:
         st.image(oura_logo_url, width=70)  # Adjust width as needed
     
     with col2:
-        st.title("Oura API Gen AI Insights")
+        st.title("Oura API Gen AI Health Insights")
     st.markdown("""
-    Gain **AI-powered health insights** based on daily **activity** and **sleep** patterns.
+    Gain **Snowflake Cortex Gen AI-powered health insights** based on daily **activity** and **sleep** patterns.
     """)
 
     # Tabs for different analyses
@@ -808,10 +808,10 @@ try:
             model_name = st.selectbox("**Select a Cortex Model:**", MODELS, key="model_name", index=0)
     
         with col2:
-            selected_app = st.selectbox("**Select a Health App:**", [
-                "📌 Generate Cortex Insights",
+            selected_app = st.selectbox("**Select a Health Path:**", [
+                "📌 Generate Cortex Health Insights",
                 "📈 Cortex-Powered Health Forecasting",
-                "🚨 Cortex-Detected Anomalies"
+                "🚨 Cortex-Detected Health Anomalies"
             ], key="health_app", index=0)
     
         with col3:
@@ -841,9 +841,9 @@ try:
         # ✅ Process the selected action
         if go_button:
             with st.spinner("Processing..."):
-                if selected_app == "📌 Generate Cortex Insights":
+                if selected_app == "📌 Generate Cortex Health Insights":
                     ai_analysis = generate_ai_analysis(activity_summary, sleep_summary, model_name)
-                    st.markdown(f"**📌 Cortex-Generated Insights:**\n\n{ai_analysis}")
+                    st.markdown(f"**📌 Cortex-Generated Health Insights:**\n\n{ai_analysis}")
     
                 elif selected_app == "📈 Cortex-Powered Health Forecasting":
                     forecast_prompt = f"""
@@ -863,9 +863,9 @@ try:
                     """
                     result = session.sql(query, params=[model_name, forecast_prompt]).collect()
                     forecast_response = result[0]["RESPONSE"] if result else "No response generated."
-                    st.markdown(f"**📈 Forecast Summary:**\n\n{forecast_response}")
+                    st.markdown(f"**📈 Health Forecast Summary:**\n\n{forecast_response}")
     
-                elif selected_app == "🚨 Cortex-Detected Anomalies":
+                elif selected_app == "🚨 Cortex-Detected Health Anomalies":
                     anomaly_prompt = f"""
                     You are analyzing a user's historical health data to detect real anomalies.
                     
@@ -898,7 +898,7 @@ try:
                     """
                     result = session.sql(query, params=[model_name, anomaly_prompt]).collect()
                     anomaly_response = result[0]["RESPONSE"] if result else "No anomalies detected."
-                    st.markdown(f"**⚠️ AI Findings:**\n\n{anomaly_response}")
+                    st.markdown(f"**⚠️ Health Findings:**\n\n{anomaly_response}")
 
 except Exception as e:
     st.error(f"An error occurred while loading the dashboard: {str(e)}")
