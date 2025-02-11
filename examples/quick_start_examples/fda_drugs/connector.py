@@ -93,7 +93,7 @@ def update(configuration: dict, state: dict):
 
         Logging.warning("Starting full sync for drug applications")
         total_processed = 0
-        max_records_per_route = 100  # Limit to 100 records per route
+        max_records_per_route = 50  # Limit to 50 records per route
 
         # Define routes to process
         routes = [
