@@ -7,6 +7,8 @@ Fivetran's Connector SDK enables you to use Python to code the interaction with 
 
 See the [Technical Reference documentation](https://fivetran.com/docs/connectors/connector-sdk/technical-reference#update) and [Best Practices documentation](https://fivetran.com/docs/connectors/connector-sdk/best-practices) for details.
 
+![Sync Status](images/fivetran_sync.png)
+
 ## Attribution
 <img src="images/accuweather_logo.png" alt="AccuWeather Logo" width="150"/>
 

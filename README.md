@@ -21,6 +21,9 @@ The Fivetran Connector SDK enables you to:
 
 ## Quick Start Examples
 
+### 🌦️ Weather Forecasts (AccuWeather API)
+[AccuWeather API](https://developer.accuweather.com/apis) integration that syncs 5-day weather forecasts for multiple locations, including temperature ranges, precipitation probabilities, and wind conditions.
+
 ### 📺 BestBuy TV Products (BestBuy Products API)  
 [BestBuy Products API](https://developer.bestbuy.com/) custom connector that syncs detailed tv product data, including specifications, pricing, customer reviews, and product features.
 
@@ -75,6 +78,7 @@ The Fivetran Connector SDK enables you to:
 ## Repository Structure
 ```
 examples/quick_start_examples/
+└── accuweather       # Accuweather API connector
 └── bestbuy_products  # BestBuy Products API connector
 └── books             # OpenLibrary API connector
 └── crypto            # CoinGecko API connector
