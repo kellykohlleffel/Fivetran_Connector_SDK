@@ -30,7 +30,7 @@ def get_api_key(configuration):
 
 
 def schema(configuration: dict):
-    """Define the table schemas for Fivetran."""
+    """Define the table for Fivetran."""
     return [
         {
             "table": "daily_forecasts",
@@ -39,7 +39,7 @@ def schema(configuration: dict):
                 "id": "STRING",
                 "location_key": "STRING",
                 "location_name": "STRING",
-                "forecast_date": "STRING",  # Changed from DATE to STRING
+                "forecast_date": "STRING",
                 "min_temp_f": "FLOAT",
                 "max_temp_f": "FLOAT",
                 "day_icon": "INT",
