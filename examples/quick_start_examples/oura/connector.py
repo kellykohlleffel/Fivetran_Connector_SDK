@@ -191,9 +191,9 @@ def update(configuration: dict, state: dict):
     try:
         api_key = get_api_key(configuration)
 
-        # Configure date range for October 2024
-        start_date = "2024-10-01"
-        end_date = "2024-10-31"
+        # Configure date range for March 2025
+        start_date = "2025-03-07"
+        end_date = "2025-03-26"
 
         Logging.warning(f"Fetching data from {start_date} to {end_date}")
 
