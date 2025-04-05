@@ -23,8 +23,8 @@ if [[ ! -f "configuration.json" ]]; then
 fi
 
 # Prompt for the Fivetran Account Name
-read -p "Enter your Fivetran Account Name [MDS_DATABRICKS_HOL]: " ACCOUNT_NAME
-ACCOUNT_NAME=${ACCOUNT_NAME:-"MDS_DATABRICKS_HOL"}
+read -p "Enter your Fivetran Account Name [MDS_BIGQUERY_HOL]: " ACCOUNT_NAME
+ACCOUNT_NAME=${ACCOUNT_NAME:-"MDS_BIGQUERY_HOL"}
 
 # Fetch the API key from config.json
 API_KEY=$(jq -r ".fivetran.api_keys.$ACCOUNT_NAME" "$CONFIG_PATH/$ROOT_CONFIG")
@@ -34,8 +34,8 @@ if [[ "$API_KEY" == "null" ]]; then
 fi
 
 # Prompt for the Fivetran Destination Name
-read -p "Enter your Fivetran Destination Name [MDLS_ADLS_UC_TS_DEMO]: " DESTINATION_NAME
-DESTINATION_NAME=${DESTINATION_NAME:-"MDLS_ADLS_UC_TS_DEMO"}
+read -p "Enter your Fivetran Destination Name [MDS_GCS_MDLS_HOL]: " DESTINATION_NAME
+DESTINATION_NAME=${DESTINATION_NAME:-"MDS_GCS_MDLS_HOL"}
 
 # Prompt for the Fivetran Connector Name
 read -p "Enter a unique Fivetran Connector Name [default-connection]: " CONNECTION_NAME
