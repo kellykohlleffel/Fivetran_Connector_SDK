@@ -34,8 +34,8 @@ if [[ "$API_KEY" == "null" ]]; then
 fi
 
 # Prompt for the Fivetran Destination Name
-read -p "Enter your Fivetran Destination Name [MDS_GCS_MDLS_HOL]: " DESTINATION_NAME
-DESTINATION_NAME=${DESTINATION_NAME:-"MDS_GCS_MDLS_HOL"}
+read -p "Enter your Fivetran Destination Name [MDS_GCS_MDLS_HOL_1]: " DESTINATION_NAME
+DESTINATION_NAME=${DESTINATION_NAME:-"MDS_GCS_MDLS_HOL_1"}
 
 # Prompt for the Fivetran Connector Name
 read -p "Enter a unique Fivetran Connector Name [default-connection]: " CONNECTION_NAME
