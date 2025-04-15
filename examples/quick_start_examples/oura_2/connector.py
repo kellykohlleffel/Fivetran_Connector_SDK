@@ -1,22 +1,43 @@
 from fivetran_connector_sdk import Connector, Operations as op, Logging as log
-from typing import Dict, List, Any
+from typing import Dict, Any
 import requests
 from datetime import datetime, timedelta
 import time
 
-def schema(configuration: dict) -> List[Dict]:
-    """Define the table schema for Fivetran"""
+def create_session():
+    """Create session with retry logic"""
+    session = requests.Session()
+    return session
+
+def schema(configuration: dict):
+    """Define the table schemas for Fivetran"""
     return [
         {
-            "table": "personal_info",
+            "table": "sleep",
             "primary_key": ["id"],
             "columns": {
                 "id": "STRING",
-                "age": "INT",
-                "weight": "FLOAT",
-                "height": "FLOAT", 
-                "biological_sex": "STRING",
-                "email": "STRING"
+                "day": "STRING",
+                "average_breath": "FLOAT",
+                "average_heart_rate": "FLOAT",
+                "average_hrv": "INT",
+                "awake_time": "INT",
+                "bedtime_end": "STRING",
+                "bedtime_start": "STRING",
+                "deep_sleep_duration": "INT",
+                "efficiency": "INT",
+                "latency": "INT",
+                "light_sleep_duration": "INT",
+                "low_battery_alert": "BOOLEAN",
+                "lowest_heart_rate": "INT",
+                "movement_30_sec": "STRING",
+                "period": "INT",
+                "rem_sleep_duration": "INT",
+                "restless_periods": "INT",
+                "sleep_phase_5_min": "STRING",
+                "time_in_bed": "INT",
+                "total_sleep_duration": "INT",
+                "type": "STRING"
             }
         },
         {
@@ -24,8 +45,7 @@ def schema(configuration: dict) -> List[Dict]:
             "primary_key": ["id"],
             "columns": {
                 "id": "STRING",
-                "day": "UTC_DATETIME",
-                "timestamp": "UTC_DATETIME",
+                "day": "STRING",
                 "score": "INT",
                 "active_calories": "INT",
                 "average_met_minutes": "FLOAT",
@@ -47,102 +67,92 @@ def schema(configuration: dict) -> List[Dict]:
             }
         },
         {
-            "table": "sleep",
+            "table": "daily_stress",
             "primary_key": ["id"],
             "columns": {
                 "id": "STRING",
-                "day": "UTC_DATETIME",
-                "bedtime_start": "UTC_DATETIME",
-                "bedtime_end": "UTC_DATETIME",
-                "average_breath": "FLOAT",
-                "average_heart_rate": "FLOAT",
-                "average_hrv": "INT",
-                "awake_time": "INT",
-                "deep_sleep_duration": "INT",
-                "efficiency": "INT",
-                "latency": "INT",
-                "light_sleep_duration": "INT",
-                "low_battery_alert": "BOOLEAN",
-                "lowest_heart_rate": "INT",
-                "period": "INT",
-                "readiness_score_delta": "INT",
-                "rem_sleep_duration": "INT",
-                "restless_periods": "INT",
-                "sleep_score_delta": "INT",
-                "time_in_bed": "INT",
-                "total_sleep_duration": "INT",
-                "type": "STRING"
+                "day": "STRING",
+                "stress_high": "INT",
+                "recovery_high": "INT",
+                "day_summary": "STRING"
             }
         }
     ]
 
-def update(configuration: dict, state: dict) -> List[Dict]:
+def update(configuration: dict, state: dict) -> None:
     """Sync data incrementally from Oura API"""
-    base_url = "https://api.ouraring.com/v2/usercollection"
-    headers = {"Authorization": f"Bearer {configuration['api_key']}"}
+    api_key = configuration['api_key']
+    session = create_session()
+
+    # Get last sync time or use default
+    last_sync = state.get('last_sync_date')
+    if last_sync:
+        start_date = datetime.strptime(last_sync, '%Y-%m-%d').date()
+    else:
+        start_date = (datetime.now() - timedelta(days=30)).date()
+
+    end_date = datetime.now().date()
 
     # Track request count for rate limiting
     request_count = 0
 
-    # Initialize state if empty
-    if not state:
-        state = {
-            "last_sync": "2020-01-01T00:00:00Z",
-            "request_count": 0
-        }
+    # Headers for API requests
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json'
+    }
 
-    last_sync = state.get("last_sync")
-    current_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    base_url = "https://api.ouraring.com/v2/usercollection"
 
-    try:
-        # Sync personal info
-        response = requests.get(f"{base_url}/personal_info", headers=headers)
-        response.raise_for_status()
+    # Function to handle rate limiting
+    def make_request(url, params=None):
+        nonlocal request_count
         request_count += 1
 
-        if response.status_code == 200:
-            data = response.json()
-            yield op.upsert("personal_info", data)
-            yield op.checkpoint({"last_sync": current_time, "request_count": request_count})
+        # Check rate limits
+        if request_count >= 4900:  # Buffer for 5000 limit
+            log.info("Approaching rate limit, sleeping for 5 minutes")
+            time.sleep(300)  # Sleep for 5 minutes
+            request_count = 0
 
-        # Sync daily activity
-        response = requests.get(
-            f"{base_url}/daily_activity",
-            params={"start_date": last_sync},
-            headers=headers
-        )
-        response.raise_for_status()
-        request_count += 1
+        try:
+            response = session.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            if response.status_code == 429:
+                log.warning("Rate limit hit, sleeping for 5 minutes")
+                time.sleep(300)
+                return make_request(url, params)
+            log.error(f"API request failed: {str(e)}")
+            raise
 
-        if response.status_code == 200:
-            data = response.json()
-            for activity in data.get("data", []):
-                yield op.upsert("daily_activity", activity)
-            yield op.checkpoint({"last_sync": current_time, "request_count": request_count})
+    # Sync Sleep data
+    params = {
+        'start_date': start_date.strftime('%Y-%m-%d'),
+        'end_date': end_date.strftime('%Y-%m-%d')
+    }
 
-        # Sync sleep data
-        response = requests.get(
-            f"{base_url}/sleep",
-            params={"start_date": last_sync},
-            headers=headers
-        )
-        response.raise_for_status()
-        request_count += 1
+    sleep_data = make_request(f"{base_url}/sleep", params)
+    for sleep in sleep_data.get('data', []):
+        yield op.upsert('sleep', sleep)
 
-        if response.status_code == 200:
-            data = response.json()
-            for sleep in data.get("data", []):
-                yield op.upsert("sleep", sleep)
-            yield op.checkpoint({"last_sync": current_time, "request_count": request_count})
+    # Sync Activity data
+    activity_data = make_request(f"{base_url}/daily_activity", params)
+    for activity in activity_data.get('data', []):
+        yield op.upsert('daily_activity', activity)
 
-    except requests.exceptions.RequestException as e:
-        log.severe(f"API request failed: {str(e)}")
-        raise
+    # Sync Stress data
+    stress_data = make_request(f"{base_url}/daily_stress", params)
+    for stress in stress_data.get('data', []):
+        yield op.upsert('daily_stress', stress)
 
-    except Exception as e:
-        log.severe(f"Unexpected error: {str(e)}")
-        raise
+    # Update state
+    yield op.checkpoint({
+        'last_sync_date': end_date.strftime('%Y-%m-%d')
+    })
 
+# Initialize the connector
 connector = Connector(update=update, schema=schema)
 
 if __name__ == "__main__":
