@@ -1,48 +1,31 @@
 from fivetran_connector_sdk import Connector, Operations as op, Logging as log
-from typing import Dict, Any
+from typing import Dict, List, Any
 import requests
 from datetime import datetime, timedelta
-import time
 
-def create_session():
-    """Create session with retry logic"""
-    session = requests.Session()
-    return session
-
-def schema(configuration: dict):
-    """Define the table schemas for Fivetran"""
+def schema(configuration: dict) -> List[Dict]:
+    """Define the table schema for Fivetran"""
     return [
         {
-            "table": "sleep",
-            "primary_key": ["id"],
+            "table": "daily_sleep",
+            "primary_key": ["id", "day"],
             "columns": {
                 "id": "STRING",
                 "day": "STRING",
-                "average_breath": "FLOAT",
-                "average_heart_rate": "FLOAT",
-                "average_hrv": "INT",
-                "awake_time": "INT",
-                "bedtime_end": "STRING",
-                "bedtime_start": "STRING",
-                "deep_sleep_duration": "INT",
-                "efficiency": "INT",
-                "latency": "INT",
-                "light_sleep_duration": "INT",
-                "low_battery_alert": "BOOLEAN",
-                "lowest_heart_rate": "INT",
-                "movement_30_sec": "STRING",
-                "period": "INT",
-                "rem_sleep_duration": "INT",
-                "restless_periods": "INT",
-                "sleep_phase_5_min": "STRING",
-                "time_in_bed": "INT",
-                "total_sleep_duration": "INT",
-                "type": "STRING"
+                "score": "INT",
+                "timestamp": "UTC_DATETIME",
+                "contributors_deep_sleep": "INT",
+                "contributors_efficiency": "INT",
+                "contributors_latency": "INT",
+                "contributors_rem_sleep": "INT",
+                "contributors_restfulness": "INT",
+                "contributors_timing": "INT",
+                "contributors_total_sleep": "INT"
             }
         },
         {
             "table": "daily_activity",
-            "primary_key": ["id"],
+            "primary_key": ["id", "day"],
             "columns": {
                 "id": "STRING",
                 "day": "STRING",
@@ -60,15 +43,18 @@ def schema(configuration: dict):
                 "meters_to_target": "INT",
                 "non_wear_time": "INT",
                 "resting_time": "INT",
+                "sedentary_met_minutes": "INT",
+                "sedentary_time": "INT",
                 "steps": "INT",
                 "target_calories": "INT",
                 "target_meters": "INT",
-                "total_calories": "INT"
+                "total_calories": "INT",
+                "timestamp": "UTC_DATETIME"
             }
         },
         {
             "table": "daily_stress",
-            "primary_key": ["id"],
+            "primary_key": ["id", "day"],
             "columns": {
                 "id": "STRING",
                 "day": "STRING",
@@ -79,80 +65,116 @@ def schema(configuration: dict):
         }
     ]
 
-def update(configuration: dict, state: dict) -> None:
+def update(configuration: dict, state: dict) -> List[Dict]:
     """Sync data incrementally from Oura API"""
-    api_key = configuration['api_key']
-    session = create_session()
-
-    # Get last sync time or use default
-    last_sync = state.get('last_sync_date')
-    if last_sync:
-        start_date = datetime.strptime(last_sync, '%Y-%m-%d').date()
-    else:
-        start_date = (datetime.now() - timedelta(days=30)).date()
-
-    end_date = datetime.now().date()
-
-    # Track request count for rate limiting
-    request_count = 0
-
-    # Headers for API requests
-    headers = {
-        'Authorization': f'Bearer {api_key}',
-        'Content-Type': 'application/json'
-    }
-
+    api_key = configuration["api_key"]
     base_url = "https://api.ouraring.com/v2/usercollection"
+    headers = {"Authorization": f"Bearer {api_key}"}
 
-    # Function to handle rate limiting
-    def make_request(url, params=None):
-        nonlocal request_count
-        request_count += 1
+    # Initialize state if not exists
+    if not state:
+        state = {
+            "last_sync": (datetime.utcnow() - timedelta(days=30)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            "request_count": 0
+        }
 
-        # Check rate limits
-        if request_count >= 4900:  # Buffer for 5000 limit
-            log.info("Approaching rate limit, sleeping for 5 minutes")
-            time.sleep(300)  # Sleep for 5 minutes
-            request_count = 0
+    start_date = state.get("last_sync")
+    current_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 
+    tables = ["daily_sleep", "daily_activity", "daily_stress"]
+
+    for table in tables:
         try:
-            response = session.get(url, headers=headers, params=params)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.RequestException as e:
+            url = f"{base_url}/{table}"
+            params = {
+                "start_date": start_date,
+                "end_date": current_time
+            }
+
+            response = requests.get(url, headers=headers, params=params)
+            state["request_count"] = state.get("request_count", 0) + 1
+
             if response.status_code == 429:
-                log.warning("Rate limit hit, sleeping for 5 minutes")
-                time.sleep(300)
-                return make_request(url, params)
-            log.error(f"API request failed: {str(e)}")
-            raise
+                log.error(f"Rate limit exceeded for {table}")
+                yield op.checkpoint(state)
+                continue
 
-    # Sync Sleep data
-    params = {
-        'start_date': start_date.strftime('%Y-%m-%d'),
-        'end_date': end_date.strftime('%Y-%m-%d')
-    }
+            if response.status_code != 200:
+                log.error(f"Error fetching {table}: {response.status_code}")
+                continue
 
-    sleep_data = make_request(f"{base_url}/sleep", params)
-    for sleep in sleep_data.get('data', []):
-        yield op.upsert('sleep', sleep)
+            data = response.json()
 
-    # Sync Activity data
-    activity_data = make_request(f"{base_url}/daily_activity", params)
-    for activity in activity_data.get('data', []):
-        yield op.upsert('daily_activity', activity)
+            for record in data.get("data", []):
+                if table == "daily_sleep":
+                    # Transform sleep data
+                    record_data = {
+                        "id": record["id"],
+                        "day": record["day"],
+                        "score": record.get("score"),
+                        "timestamp": record["timestamp"],
+                        "contributors_deep_sleep": record.get("contributors", {}).get("deep_sleep"),
+                        "contributors_efficiency": record.get("contributors", {}).get("efficiency"),
+                        "contributors_latency": record.get("contributors", {}).get("latency"),
+                        "contributors_rem_sleep": record.get("contributors", {}).get("rem_sleep"),
+                        "contributors_restfulness": record.get("contributors", {}).get("restfulness"),
+                        "contributors_timing": record.get("contributors", {}).get("timing"),
+                        "contributors_total_sleep": record.get("contributors", {}).get("total_sleep")
+                    }
+                elif table == "daily_activity":
+                    # Transform activity data
+                    record_data = {
+                        "id": record["id"],
+                        "day": record["day"],
+                        "score": record.get("score"),
+                        "active_calories": record["active_calories"],
+                        "average_met_minutes": record["average_met_minutes"],
+                        "equivalent_walking_distance": record["equivalent_walking_distance"],
+                        "high_activity_met_minutes": record["high_activity_met_minutes"],
+                        "high_activity_time": record["high_activity_time"],
+                        "inactivity_alerts": record["inactivity_alerts"],
+                        "low_activity_met_minutes": record["low_activity_met_minutes"],
+                        "low_activity_time": record["low_activity_time"],
+                        "medium_activity_met_minutes": record["medium_activity_met_minutes"],
+                        "medium_activity_time": record["medium_activity_time"],
+                        "meters_to_target": record["meters_to_target"],
+                        "non_wear_time": record["non_wear_time"],
+                        "resting_time": record["resting_time"],
+                        "sedentary_met_minutes": record["sedentary_met_minutes"],
+                        "sedentary_time": record["sedentary_time"],
+                        "steps": record["steps"],
+                        "target_calories": record["target_calories"],
+                        "target_meters": record["target_meters"],
+                        "total_calories": record["total_calories"],
+                        "timestamp": record["timestamp"]
+                    }
+                else:  # daily_stress
+                    # Transform stress data
+                    record_data = {
+                        "id": record["id"],
+                        "day": record["day"],
+                        "stress_high": record.get("stress_high"),
+                        "recovery_high": record.get("recovery_high"),
+                        "day_summary": record.get("day_summary")
+                    }
 
-    # Sync Stress data
-    stress_data = make_request(f"{base_url}/daily_stress", params)
-    for stress in stress_data.get('data', []):
-        yield op.upsert('daily_stress', stress)
+                yield op.upsert(table, record_data)
 
-    # Update state
-    yield op.checkpoint({
-        'last_sync_date': end_date.strftime('%Y-%m-%d')
-    })
+            # Checkpoint after each table
+            if state["request_count"] >= 100:
+                log.info(f"Checkpointing after {state['request_count']} requests")
+                yield op.checkpoint(state)
+                state["request_count"] = 0
 
-# Initialize the connector
+        except Exception as e:
+            log.error(f"Error processing {table}: {str(e)}")
+            continue
+
+    # Update state with latest sync time
+    state["last_sync"] = current_time
+    yield op.checkpoint(state)
+
+# Create connector object
 connector = Connector(update=update, schema=schema)
 
 if __name__ == "__main__":
