@@ -1,0 +1,21 @@
+{
+  "configVersion": 1,
+  "connectionSpecification": {
+    "type": "object",
+    "required": ["api_key"],
+    "properties": {
+      "api_token": {
+        "type": "string",
+        "description": "Your Oura Ring Personal Access Token",
+        "configurationGroupKey": "Authentication",
+        "secret": true
+      },
+      "base_url": {
+        "type": "string",
+        "description": "Oura API Base URL",
+        "configurationGroupKey": "Connection",
+        "default": "https://api.ouraring.com/v2"
+      }
+    }
+  }
+}

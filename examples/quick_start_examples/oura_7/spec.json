@@ -1,0 +1,23 @@
+{
+  "configVersion": 1,
+  "connectionSpecification": {
+    "type": "object",
+    "required": ["api_key"],
+    "properties": {
+      "api_key": {
+        "type": "string",
+        "description": "Enter your Oura Ring Personal Access Token. You can generate this in the Oura developer portal.",
+        "configurationGroupKey": "Authentication",
+        "secret": true
+      },
+      "start_date": {
+        "type": "string",
+        "description": "The date from which to start syncing data (format: YYYY-MM-DD). If not specified, default is 2025-03-01.",
+        "configurationGroupKey": "Configuration",
+        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+        "examples": ["2023-01-01"],
+        "default": "2025-03-01"
+      }
+    }
+  }
+}

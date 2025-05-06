@@ -1,0 +1,27 @@
+{
+    "configVersion": 1,
+    "connectionSpecification": {
+      "type": "object",
+      "required": ["api_key"],
+      "properties": {
+        "api_key": {
+          "type": "string",
+          "description": "API Key for the QBR Data API",
+          "configurationGroupKey": "Authentication",
+          "secret": true
+        },
+        "base_url": {
+          "type": "string",
+          "description": "Base URL for the QBR Data API",
+          "configurationGroupKey": "Connection",
+          "default": "https://sdk-demo-api-dot-internal-sales.uc.r.appspot.com"
+        },
+        "page_size": {
+          "type": "string",
+          "description": "Number of records per page (1-200)",
+          "configurationGroupKey": "Advanced",
+          "default": "100"
+        }
+      }
+    }
+  }

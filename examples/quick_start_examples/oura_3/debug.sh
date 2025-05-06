@@ -21,4 +21,4 @@ ls -la files/
 
 # Run the Fivetran debug command
 echo "Running fivetran debug..."
-fivetran debug
+fivetran debug --configuration configuration.json

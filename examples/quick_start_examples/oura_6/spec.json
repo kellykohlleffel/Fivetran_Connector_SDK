@@ -1,0 +1,23 @@
+{
+  "configVersion": 1,
+  "connectionSpecification": {
+    "type": "object",
+    "required": ["api_key"],
+    "properties": {
+      "api_token": {
+        "type": "string",
+        "description": "Enter your Oura Ring Personal Access Token",
+        "configurationGroupKey": "Authentication",
+        "secret": true
+      },
+      "start_date": {
+        "type": "string",
+        "description": "The start date for fetching data (format: YYYY-MM-DD)",
+        "configurationGroupKey": "Configuration",
+        "default": "2025-03-01",
+        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+        "examples": ["2025-03-01"]
+      }
+    }
+  }
+}

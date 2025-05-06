@@ -1,152 +1,182 @@
 from fivetran_connector_sdk import Connector, Operations as op, Logging as log
-from typing import Dict, Any
-from datetime import datetime
-from dateutil import parser
 import requests
 import time
+from datetime import datetime, timezone
 
-def schema(configuration: Dict[str, Any]) -> list:
-    """Define the table schema for the QBR data"""
-    return [{
-        "table": "qbr_data",
-        "primary_key": ["company_id", "qbr_quarter", "qbr_year"],
-        "columns": {
-            "company_id": "STRING",
-            "company_name": "STRING",
-            "industry": "STRING",
-            "size": "STRING",
-            "contract_value": "NUMBER",
-            "contract_start_date": "UTC_DATETIME",
-            "contract_expiration_date": "UTC_DATETIME",
-            "qbr_quarter": "STRING",
-            "qbr_year": "STRING",
-            "deal_stage": "STRING",
-            "renewal_probability": "INT",
-            "upsell_opportunity": "STRING",
-            "active_users": "INT",
-            "feature_adoption_rate": "FLOAT",
-            "custom_integrations": "INT",
-            "pending_feature_requests": "INT",
-            "ticket_volume": "INT",
-            "avg_resolution_time_hours": "FLOAT",
-            "csat_score": "FLOAT",
-            "sla_compliance_rate": "FLOAT",
-            "success_metrics_defined": "BOOLEAN",
-            "roi_calculated": "BOOLEAN",
-            "estimated_roi_value": "STRING",
-            "economic_buyer_identified": "BOOLEAN",
-            "executive_sponsor_engaged": "BOOLEAN",
-            "decision_maker_level": "STRING",
-            "decision_process_documented": "BOOLEAN",
-            "next_steps_defined": "BOOLEAN",
-            "decision_timeline_clear": "BOOLEAN",
-            "technical_criteria_met": "BOOLEAN",
-            "business_criteria_met": "BOOLEAN",
-            "success_criteria_defined": "STRING",
-            "pain_points_documented": "STRING",
-            "pain_impact_level": "STRING",
-            "urgency_level": "STRING",
-            "champion_identified": "BOOLEAN",
-            "champion_level": "STRING",
-            "champion_engagement_score": "INT",
-            "competitive_situation": "STRING",
-            "competitive_position": "STRING",
-            "health_score": "FLOAT"
+def schema(configuration: dict):
+    """Define the table schema for Fivetran"""
+    # Validate required configuration parameters
+    api_key = configuration.get('api_key')
+    if not api_key:
+        log.severe("API key is missing from configuration")
+        return []
+
+    return [
+        {
+            "table": "qbr_records",
+            "primary_key": ["record_id"],
+            "columns": {
+                "record_id": "STRING",
+                "company_id": "STRING",
+                "company_name": "STRING",
+                "industry": "STRING",
+                "size": "STRING",
+                "contract_value": "INT",
+                "contract_start_date": "STRING",
+                "contract_expiration_date": "STRING",
+                "qbr_quarter": "STRING",
+                "qbr_year": "INT",
+                "deal_stage": "STRING",
+                "renewal_probability": "INT",
+                "upsell_opportunity": "INT",
+                "active_users": "INT",
+                "feature_adoption_rate": "FLOAT",
+                "custom_integrations": "INT",
+                "pending_feature_requests": "INT",
+                "ticket_volume": "INT",
+                "avg_resolution_time_hours": "FLOAT",
+                "csat_score": "FLOAT",
+                "sla_compliance_rate": "FLOAT",
+                "success_metrics_defined": "STRING",
+                "roi_calculated": "STRING",
+                "estimated_roi_value": "STRING",
+                "economic_buyer_identified": "STRING",
+                "executive_sponsor_engaged": "STRING",
+                "decision_maker_level": "STRING",
+                "decision_process_documented": "STRING",
+                "next_steps_defined": "STRING",
+                "decision_timeline_clear": "STRING",
+                "technical_criteria_met": "STRING",
+                "business_criteria_met": "STRING",
+                "success_criteria_defined": "STRING",
+                "pain_points_documented": "STRING",
+                "pain_impact_level": "STRING",
+                "urgency_level": "STRING",
+                "champion_identified": "STRING",
+                "champion_level": "STRING",
+                "champion_engagement_score": "INT",
+                "competitive_situation": "STRING",
+                "competitive_position": "STRING",
+                "health_score": "FLOAT"
+            }
         }
-    }]
+    ]
 
-def normalize_date(date_str: str) -> str:
-    """Normalize date strings to RFC 3339 format"""
-    if not date_str:
-        return None
-    try:
-        if 'T' in date_str:
-            dt = parser.parse(date_str)
-        else:
-            dt = datetime.strptime(date_str, "%Y-%m-%d")
-        return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-    except Exception as e:
-        log.warning(f"Error normalizing date {date_str}: {str(e)}")
-        return None
+def update(configuration: dict, state: dict):
+    """Extract data from the QBR Data API and yield operations"""
+    # Validate required configuration parameters
+    api_key = configuration.get('api_key')
+    if not api_key:
+        log.severe("API key is missing from configuration")
+        return
 
-def fetch_qbr_data(configuration: Dict[str, Any], cursor: str = None) -> Dict[str, Any]:
-    """Fetch QBR data from the API with exponential backoff retry logic"""
-    base_url = "https://sdk-demo-api-dot-internal-sales.uc.r.appspot.com/qbr_data"
-    headers = {"api_key": configuration["api_key"]}
-    params = {"page_size": "200"}
+    base_url = configuration.get('base_url', 'https://sdk-demo-api-dot-internal-sales.uc.r.appspot.com')
+    page_size = int(configuration.get('page_size', '100'))
 
-    if cursor:
-        params["cursor"] = cursor
+    # Ensure page_size is within API limits (1-200)
+    page_size = min(max(page_size, 1), 200)
 
-    max_retries = 5
-    retry_count = 0
+    # Setup API client
+    headers = {"api_key": api_key}
+    session = requests.Session()
+    session.headers.update(headers)
 
-    while retry_count < max_retries:
-        try:
-            response = requests.get(base_url, headers=headers, params=params)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            retry_count += 1
-            if retry_count == max_retries:
-                raise Exception(f"Failed to fetch QBR data after {max_retries} attempts: {str(e)}")
-            wait_time = 2 ** retry_count
-            log.warning(f"Request failed, retrying in {wait_time} seconds...")
-            time.sleep(wait_time)
+    # Get the stored cursor from the previous sync
+    cursor = state.get('next_cursor')
 
-def update(configuration: Dict[str, Any], state: Dict[str, Any]) -> None:
-    """Update QBR data incrementally"""
-    cursor = state.get("cursor", None)
-    request_count = state.get("request_count", 0)
+    # Get the timestamp for this sync
+    current_timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # Track record count for logging
+    record_count = 0
+    page_count = 0
 
     try:
-        while True:
-            request_count += 1
-            log.info(f"Fetching QBR data (request #{request_count})")
+        has_more_pages = True
 
-            response_data = fetch_qbr_data(configuration, cursor)
-            records = response_data.get("qbr_records", [])
+        while has_more_pages:
+            page_count += 1
+            log.info(f"Fetching page {page_count} of QBR records" + (f" with cursor: {cursor}" if cursor else ""))
 
-            if not records:
-                log.info("No more records to process")
-                break
+            # Build request parameters
+            params = {"page_size": page_size}
+            if cursor:
+                params["cursor"] = cursor
 
-            for record in records:
-                # Normalize date fields
-                record["contract_start_date"] = normalize_date(record.get("contract_start_date"))
-                record["contract_expiration_date"] = normalize_date(record.get("contract_expiration_date"))
+            # Make API request with exponential backoff for rate limiting
+            max_retries = 5
+            retry_count = 0
+            backoff_time = 1
 
-                # Convert boolean strings to actual booleans
-                boolean_fields = [
-                    "success_metrics_defined", "roi_calculated", "economic_buyer_identified",
-                    "executive_sponsor_engaged", "decision_process_documented", "next_steps_defined",
-                    "decision_timeline_clear", "technical_criteria_met", "business_criteria_met",
-                    "champion_identified"
-                ]
+            while retry_count < max_retries:
+                try:
+                    response = session.get(f"{base_url}/qbr_data", params=params)
+                    response.raise_for_status()
+                    break
+                except requests.exceptions.RequestException as e:
+                    retry_count += 1
+                    if e.response and e.response.status_code == 429:
+                        # Rate limited - get retry time from headers or use exponential backoff
+                        retry_after = int(e.response.headers.get('Retry-After', backoff_time))
+                        log.warning(f"Rate limited. Waiting for {retry_after} seconds before retry {retry_count}/{max_retries}")
+                        time.sleep(retry_after)
+                        backoff_time *= 2  # Exponential backoff
+                    elif retry_count < max_retries:
+                        log.warning(f"API request failed: {str(e)}. Retrying in {backoff_time} seconds ({retry_count}/{max_retries})")
+                        time.sleep(backoff_time)
+                        backoff_time *= 2  # Exponential backoff
+                    else:
+                        log.severe(f"Failed to fetch QBR data after {max_retries} retries: {str(e)}")
+                        return
 
-                for field in boolean_fields:
-                    if field in record:
-                        record[field] = str(record[field]).lower() == "true"
+            # If we exceeded retries, exit
+            if retry_count >= max_retries:
+                log.severe(f"Exceeded maximum retry attempts ({max_retries})")
+                return
 
-                yield op.upsert("qbr_data", record)
+            # Process the response
+            data = response.json()
+            qbr_records = data.get('qbr_records', [])
 
-            cursor = response_data.get("next_cursor")
+            # Process each record
+            for record in qbr_records:
+                # Ensure all float values are properly handled
+                record_count += 1
 
-            # Save state after processing each page
-            yield op.checkpoint({
-                "cursor": cursor,
-                "request_count": request_count
-            })
+                # Normalizing float values to avoid type errors
+                for float_field in ['feature_adoption_rate', 'avg_resolution_time_hours', 'csat_score', 'sla_compliance_rate', 'health_score']:
+                    if float_field in record:
+                        try:
+                            record[float_field] = float(record[float_field]) if record[float_field] is not None else None
+                        except (TypeError, ValueError):
+                            record[float_field] = None
 
-            if not cursor:
-                log.info("No more pages to fetch")
-                break
+                # Yield update operation
+                yield op.update("qbr_records", record)
+
+            # Check if we have more pages
+            next_cursor = data.get('next_cursor')
+            has_more_pages = bool(next_cursor)
+
+            # Save cursor for next page or next sync
+            if next_cursor:
+                cursor = next_cursor
+
+                # Create a checkpoint every 10 pages to save progress
+                if page_count % 10 == 0:
+                    log.info(f"Checkpointing after {record_count} records")
+                    yield op.checkpoint({"next_cursor": cursor, "last_sync_timestamp": current_timestamp})
+
+        # Final checkpoint after all records are processed
+        log.info(f"Completed sync with {record_count} records processed across {page_count} pages")
+        yield op.checkpoint({"next_cursor": cursor, "last_sync_timestamp": current_timestamp})
 
     except Exception as e:
-        log.severe(f"Error during QBR data sync: {str(e)}")
-        raise
+        log.severe(f"Unexpected error during sync: {str(e)}")
 
+# Create the connector instance
 connector = Connector(update=update, schema=schema)
 
+# Main entry point for local debugging
 if __name__ == "__main__":
     connector.debug()

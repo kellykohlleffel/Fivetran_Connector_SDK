@@ -1,187 +1,223 @@
 from fivetran_connector_sdk import Connector, Operations as op, Logging as log
-from typing import Dict, Any
 import requests
-from datetime import datetime, timezone
-from dateutil import parser
+from datetime import datetime, timedelta
 import time
+from urllib.parse import urljoin
 
-BASE_URL = "https://api.ouraring.com/v2/usercollection"
-
-def normalize_datetime(date_str: str) -> str:
-    """Normalize datetime string to RFC 3339 format."""
-    try:
-        if 'T' not in date_str:
-            # Handle date-only strings
-            return datetime.strptime(date_str, "%Y-%m-%d").strftime("%Y-%m-%dT%H:%M:%SZ")
-        else:
-            # Handle datetime strings with potential timezone
-            return parser.parse(date_str).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    except Exception as e:
-        log.error(f"Error normalizing datetime {date_str}: {str(e)}")
-        return date_str
-
-def make_request(endpoint: str, config: Dict[str, Any], params: Dict[str, Any] = None) -> Dict:
-    """Make authenticated request to Oura API with retry logic."""
-    headers = {"Authorization": f"Bearer {config['api_key']}"}
-    max_retries = 3
-    base_delay = 1
-
-    for attempt in range(max_retries):
-        try:
-            response = requests.get(f"{BASE_URL}/{endpoint}", headers=headers, params=params)
-
-            if response.status_code == 429:
-                delay = base_delay * (2 ** attempt)
-                log.warning(f"Rate limited. Waiting {delay} seconds...")
-                time.sleep(delay)
-                continue
-
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            if attempt == max_retries - 1:
-                raise Exception(f"API request failed after {max_retries} attempts: {str(e)}")
-            delay = base_delay * (2 ** attempt)
-            time.sleep(delay)
-
-    raise Exception("Max retries exceeded")
-
-def schema(config: Dict[str, Any]) -> list:
-    """Define the connector schema."""
+def schema(configuration: dict):
+    """Define the table schema for Fivetran"""
     return [
         {
-            "table": "daily_sleep",
-            "primary_key": ["id", "day"],
-            "columns": {
-                "id": "STRING",
-                "day": "STRING",
-                "score": "INT",
-                "timestamp": "UTC_DATETIME",
-                "contributors_deep_sleep": "INT",
-                "contributors_efficiency": "INT",
-                "contributors_latency": "INT",
-                "contributors_rem_sleep": "INT",
-                "contributors_restfulness": "INT",
-                "contributors_timing": "INT",
-                "contributors_total_sleep": "INT"
-            }
+            "table": "daily_activity",
+            "primary_key": ["id"]
         },
         {
-            "table": "daily_activity",
-            "primary_key": ["id", "day"],
-            "columns": {
-                "id": "STRING",
-                "day": "STRING",
-                "score": "INT",
-                "active_calories": "INT",
-                "average_met_minutes": "FLOAT",
-                "equivalent_walking_distance": "INT",
-                "high_activity_met_minutes": "INT",
-                "high_activity_time": "INT",
-                "inactivity_alerts": "INT",
-                "low_activity_met_minutes": "INT",
-                "low_activity_time": "INT",
-                "medium_activity_met_minutes": "INT",
-                "medium_activity_time": "INT",
-                "meters_to_target": "INT",
-                "non_wear_time": "INT",
-                "resting_time": "INT",
-                "sedentary_met_minutes": "INT",
-                "sedentary_time": "INT",
-                "steps": "INT",
-                "target_calories": "INT",
-                "target_meters": "INT",
-                "total_calories": "INT",
-                "timestamp": "UTC_DATETIME"
-            }
+            "table": "daily_sleep",
+            "primary_key": ["id"]
         }
     ]
 
-def update(config: Dict[str, Any], state: Dict[str, Any]) -> None:
-    """Incrementally update data from Oura API."""
-    start_date = "2025-01-01"
-    end_date = "2025-04-20"
+def update(configuration: dict, state: dict):
+    """Update function to fetch data from Oura API"""
+    # Get configuration parameters
+    api_token = configuration.get('api_token')
+    if not api_token:
+        log.severe("API token is not provided in the configuration")
+        return
 
-    # Track request count for rate limiting
-    request_count = state.get('request_count', 0)
+    base_url = configuration.get('base_url', 'https://api.ouraring.com/v2/')
 
-    # Update daily sleep data
-    try:
-        sleep_data = make_request("daily_sleep", config, {
-            "start_date": start_date,
-            "end_date": end_date
-        })
+    # Set up headers with authentication
+    headers = {
+        'Authorization': f'Bearer {api_token}',
+        'Content-Type': 'application/json'
+    }
 
-        for sleep in sleep_data.get("data", []):
-            yield op.upsert(
-                "daily_sleep",
-                {
-                    "id": sleep["id"],
-                    "day": sleep["day"],
-                    "score": sleep.get("score"),
-                    "timestamp": normalize_datetime(sleep["timestamp"]),
-                    "contributors_deep_sleep": sleep.get("contributors", {}).get("deep_sleep"),
-                    "contributors_efficiency": sleep.get("contributors", {}).get("efficiency"),
-                    "contributors_latency": sleep.get("contributors", {}).get("latency"),
-                    "contributors_rem_sleep": sleep.get("contributors", {}).get("rem_sleep"),
-                    "contributors_restfulness": sleep.get("contributors", {}).get("restfulness"),
-                    "contributors_timing": sleep.get("contributors", {}).get("timing"),
-                    "contributors_total_sleep": sleep.get("contributors", {}).get("total_sleep")
-                }
-            )
+    # Get last sync timestamps for each endpoint or use default
+    default_start_date = "2025-03-01T00:00:00Z"  # March 1, 2025
 
-        request_count += 1
-        yield op.checkpoint({"request_count": request_count})
+    # Use the state to track last sync dates per table
+    daily_activity_last_sync = state.get('daily_activity_last_sync', default_start_date)
+    daily_sleep_last_sync = state.get('daily_sleep_last_sync', default_start_date)
 
-    except Exception as e:
-        log.error(f"Error fetching sleep data: {str(e)}")
-        raise
+    # Current time to use for this sync's state update
+    current_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    # Update daily activity data
-    try:
-        activity_data = make_request("daily_activity", config, {
-            "start_date": start_date,
-            "end_date": end_date
-        })
+    # Sync daily activity data
+    yield from sync_daily_activity(base_url, headers, daily_activity_last_sync, current_time)
 
-        for activity in activity_data.get("data", []):
-            yield op.upsert(
-                "daily_activity",
-                {
-                    "id": activity["id"],
-                    "day": activity["day"],
-                    "score": activity.get("score"),
-                    "active_calories": activity.get("active_calories"),
-                    "average_met_minutes": activity.get("average_met_minutes"),
-                    "equivalent_walking_distance": activity.get("equivalent_walking_distance"),
-                    "high_activity_met_minutes": activity.get("high_activity_met_minutes"),
-                    "high_activity_time": activity.get("high_activity_time"),
-                    "inactivity_alerts": activity.get("inactivity_alerts"),
-                    "low_activity_met_minutes": activity.get("low_activity_met_minutes"),
-                    "low_activity_time": activity.get("low_activity_time"),
-                    "medium_activity_met_minutes": activity.get("medium_activity_met_minutes"),
-                    "medium_activity_time": activity.get("medium_activity_time"),
-                    "meters_to_target": activity.get("meters_to_target"),
-                    "non_wear_time": activity.get("non_wear_time"),
-                    "resting_time": activity.get("resting_time"),
-                    "sedentary_met_minutes": activity.get("sedentary_met_minutes"),
-                    "sedentary_time": activity.get("sedentary_time"),
-                    "steps": activity.get("steps"),
-                    "target_calories": activity.get("target_calories"),
-                    "target_meters": activity.get("target_meters"),
-                    "total_calories": activity.get("total_calories"),
-                    "timestamp": normalize_datetime(activity["timestamp"])
-                }
-            )
+    # Checkpoint after activity sync
+    yield op.checkpoint({"daily_activity_last_sync": current_time})
 
-        request_count += 1
-        yield op.checkpoint({"request_count": request_count})
+    # Sync daily sleep data
+    yield from sync_daily_sleep(base_url, headers, daily_sleep_last_sync, current_time)
 
-    except Exception as e:
-        log.error(f"Error fetching activity data: {str(e)}")
-        raise
+    # Final checkpoint after all syncs
+    yield op.checkpoint({"daily_sleep_last_sync": current_time})
 
+
+def sync_daily_activity(base_url, headers, last_sync, current_time):
+    """Sync daily activity data from Oura API"""
+    log.info(f"Syncing daily activity data since {last_sync}")
+
+    # Convert datetime strings to date strings for API
+    start_date = datetime.strptime(last_sync, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
+    end_date = datetime.strptime(current_time, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
+
+    endpoint = "usercollection/daily_activity"
+    url = urljoin(base_url, endpoint)
+
+    next_token = None
+    page_count = 0
+    last_checkpoint_time = time.time()
+
+    while True:
+        try:
+            params = {
+                "start_date": start_date,
+                "end_date": end_date
+            }
+
+            if next_token:
+                params["next_token"] = next_token
+
+            log.info(f"Requesting daily activity data: {url} with params: {params}")
+            response = requests.get(url, headers=headers, params=params)
+
+            # Handle potential rate limiting
+            if response.status_code == 429:
+                retry_after = int(response.headers.get('Retry-After', 60))
+                log.warning(f"Rate limited. Waiting for {retry_after} seconds")
+                time.sleep(retry_after)
+                continue
+
+            response.raise_for_status()
+            data = response.json()
+
+            # Process the data
+            if 'data' in data and data['data']:
+                for item in data['data']:
+                    # Ensure all records have an id for primary key purposes
+                    if 'id' not in item:
+                        # Use date as id if not present
+                        item['id'] = item.get('day', f"unknown_{time.time()}")
+
+                    yield op.update("daily_activity", item)
+
+            # Check for pagination
+            next_token = data.get('next_token')
+            page_count += 1
+
+            # Log progress
+            log.info(f"Processed page {page_count} of daily activity data with {len(data.get('data', []))} records")
+
+            # Create a checkpoint every ~10 minutes of processing
+            if time.time() - last_checkpoint_time > 600:
+                yield op.checkpoint({"daily_activity_last_sync": current_time})
+                last_checkpoint_time = time.time()
+                log.info("Created checkpoint during daily activity sync")
+
+            # Break if no more pages
+            if not next_token:
+                break
+
+            # Be nice to the API - add a small delay between requests
+            time.sleep(1)
+
+        except requests.exceptions.RequestException as e:
+            log.severe(f"Error fetching daily activity data: {str(e)}")
+            # For transient errors, we might want to retry with backoff
+            if hasattr(e, 'response') and e.response and 500 <= e.response.status_code < 600:
+                log.warning(f"Server error {e.response.status_code}, retrying in 30 seconds")
+                time.sleep(30)
+                continue
+            else:
+                # For client errors or other issues, stop the sync
+                break
+
+
+def sync_daily_sleep(base_url, headers, last_sync, current_time):
+    """Sync daily sleep data from Oura API"""
+    log.info(f"Syncing daily sleep data since {last_sync}")
+
+    # Convert datetime strings to date strings for API
+    start_date = datetime.strptime(last_sync, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
+    end_date = datetime.strptime(current_time, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
+
+    endpoint = "usercollection/daily_sleep"
+    url = urljoin(base_url, endpoint)
+
+    next_token = None
+    page_count = 0
+    last_checkpoint_time = time.time()
+
+    while True:
+        try:
+            params = {
+                "start_date": start_date,
+                "end_date": end_date
+            }
+
+            if next_token:
+                params["next_token"] = next_token
+
+            log.info(f"Requesting daily sleep data: {url} with params: {params}")
+            response = requests.get(url, headers=headers, params=params)
+
+            # Handle potential rate limiting
+            if response.status_code == 429:
+                retry_after = int(response.headers.get('Retry-After', 60))
+                log.warning(f"Rate limited. Waiting for {retry_after} seconds")
+                time.sleep(retry_after)
+                continue
+
+            response.raise_for_status()
+            data = response.json()
+
+            # Process the data
+            if 'data' in data and data['data']:
+                for item in data['data']:
+                    # Ensure all records have an id for primary key purposes
+                    if 'id' not in item:
+                        # Use date as id if not present
+                        item['id'] = item.get('day', f"unknown_{time.time()}")
+
+                    yield op.update("daily_sleep", item)
+
+            # Check for pagination
+            next_token = data.get('next_token')
+            page_count += 1
+
+            # Log progress
+            log.info(f"Processed page {page_count} of daily sleep data with {len(data.get('data', []))} records")
+
+            # Create a checkpoint every ~10 minutes of processing
+            if time.time() - last_checkpoint_time > 600:
+                yield op.checkpoint({"daily_sleep_last_sync": current_time})
+                last_checkpoint_time = time.time()
+                log.info("Created checkpoint during daily sleep sync")
+
+            # Break if no more pages
+            if not next_token:
+                break
+
+            # Be nice to the API - add a small delay between requests
+            time.sleep(1)
+
+        except requests.exceptions.RequestException as e:
+            log.severe(f"Error fetching daily sleep data: {str(e)}")
+            # For transient errors, we might want to retry with backoff
+            if hasattr(e, 'response') and e.response and 500 <= e.response.status_code < 600:
+                log.warning(f"Server error {e.response.status_code}, retrying in 30 seconds")
+                time.sleep(30)
+                continue
+            else:
+                # For client errors or other issues, stop the sync
+                break
+
+# Create connector object
 connector = Connector(update=update, schema=schema)
 
+# Entry point for debugging
 if __name__ == "__main__":
     connector.debug()
