@@ -38,8 +38,8 @@ read -p "Enter your Fivetran Destination Name [NEW_SALES_ENG_HANDS_ON_LAB]: " DE
 DESTINATION_NAME=${DESTINATION_NAME:-"NEW_SALES_ENG_HANDS_ON_LAB"}
 
 # Prompt for the Fivetran Connector Name
-read -p "Enter a unique Fivetran Connector Name [default-connection]: " CONNECTION_NAME
-CONNECTION_NAME=${CONNECTION_NAME:-"default-connection"}
+read -p "Enter a unique Fivetran Connector Name [my_new_fivetran_custom_connector]: " CONNECTION_NAME
+CONNECTION_NAME=${CONNECTION_NAME:-"my_new_fivetran_custom_connector"}
 
 # Deploy the connector using the configuration file
 echo "Deploying connector..."

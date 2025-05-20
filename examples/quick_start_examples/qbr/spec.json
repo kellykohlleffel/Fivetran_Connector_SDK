@@ -1,0 +1,21 @@
+{
+    "api_key": {
+      "type": "string",
+      "description": "API key for authentication with the QBR Data API",
+      "required": true
+    },
+    "base_url": {
+      "type": "string",
+      "description": "Base URL for the QBR Data API",
+      "default": "https://sdk-demo-api-dot-internal-sales.uc.r.appspot.com",
+      "required": false
+    },
+    "page_size": {
+      "type": "integer",
+      "description": "Number of records to fetch per page (maximum 200)",
+      "default": 100,
+      "min": 1,
+      "max": 200,
+      "required": false
+    }
+  }
