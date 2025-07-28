@@ -1,8 +1,8 @@
+from fivetran_connector_sdk import Connector
+from fivetran_connector_sdk import Logging as log
+from fivetran_connector_sdk import Operations as op
 import requests
 import time
-from fivetran_connector_sdk import Connector
-from fivetran_connector_sdk import Operations as op
-from fivetran_connector_sdk import Logging as log
 
 def schema(configuration: dict):
     """Define the minimal table schema for Fivetran"""
@@ -13,7 +13,6 @@ def schema(configuration: dict):
         return []
 
     # Return minimal schema with ONLY table name and primary key
-    # According to the sample record, record_id is the primary key
     return [
         {
             "table": "agr_records",
@@ -22,7 +21,7 @@ def schema(configuration: dict):
     ]
 
 def update(configuration: dict, state: dict):
-    """Extract data from the agriculture API endpoint and yield operations"""
+    """Extract data from the agriculture endpoint and yield operations"""
     
     # Validate configuration
     api_key = configuration.get('api_key')
@@ -77,7 +76,7 @@ def update(configuration: dict, state: dict):
                 
                 data = response.json()
                 
-                # Process records - use the agr_records key from the response
+                # Process records
                 records = data.get("agr_records", [])
                 for record in records:
                     # Ensure the record has an ID
@@ -118,31 +117,17 @@ def update(configuration: dict, state: dict):
                 log.severe(f"Unexpected error processing response: {str(e)}")
                 break
         
-        # Check if we hit the iteration limit
-        if iteration_count >= 200:
-            log.warning("Reached maximum number of API calls (200). Saving progress and exiting.")
-            if next_cursor:
-                yield op.checkpoint({"next_cursor": next_cursor})
-            return
-        
         # Final checkpoint
         if next_cursor:
             yield op.checkpoint({"next_cursor": next_cursor})
-            log.info(f"Final checkpoint: {record_count} total records, cursor: {next_cursor}")
+            
+        if iteration_count >= 200:
+            log.info(f"Reached maximum iteration count (200). Sync will continue in the next run from cursor: {next_cursor}")
         else:
-            log.info(f"Sync completed: {record_count} total records")
+            log.info(f"Sync completed: {record_count} total records processed")
     
     except Exception as e:
         log.severe(f"Unexpected error in update function: {str(e)}")
 
-# This creates the connector object that will use the update function defined in this connector.py file.
+# Initialize the connector
 connector = Connector(update=update, schema=schema)
-
-# Check if the script is being run as the main module.
-if __name__ == "__main__":
-    import json
-    # Open the configuration.json file and load its contents into a dictionary.
-    with open("configuration.json", "r") as f:
-        configuration = json.load(f)
-    # Test connector by running the file directly
-    connector.debug(configuration=configuration)

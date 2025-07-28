@@ -13,16 +13,15 @@ def schema(configuration: dict):
         return []
 
     # Return minimal schema with ONLY table name and primary key
-    # According to the sample record, record_id is the primary key
     return [
         {
-            "table": "agr_records",
+            "table": "fts_records",
             "primary_key": ["record_id"]
         }
     ]
 
 def update(configuration: dict, state: dict):
-    """Extract data from the agriculture API endpoint and yield operations"""
+    """Extract data from the fts_data endpoint and yield operations"""
     
     # Validate configuration
     api_key = configuration.get('api_key')
@@ -46,7 +45,7 @@ def update(configuration: dict, state: dict):
     next_cursor = state.get('next_cursor')
     
     # Set up the parameters for the API request
-    url = f"{base_url}/agr_data"
+    url = f"{base_url}/fts_data"
     params = {"page_size": page_size}
     if next_cursor:
         params["cursor"] = next_cursor
@@ -57,11 +56,11 @@ def update(configuration: dict, state: dict):
     record_count = 0
     has_more = True
     iteration_count = 0
+    max_iterations = 200
     
     try:
-        while has_more and iteration_count < 200:
+        while has_more and iteration_count < max_iterations:
             iteration_count += 1
-            
             try:
                 # Make API request with retry logic
                 for attempt in range(3):
@@ -77,12 +76,12 @@ def update(configuration: dict, state: dict):
                 
                 data = response.json()
                 
-                # Process records - use the agr_records key from the response
-                records = data.get("agr_records", [])
+                # Process records
+                records = data.get("fts_records", [])
                 for record in records:
                     # Ensure the record has an ID
                     if 'record_id' in record:
-                        yield op.upsert("agr_records", record)
+                        yield op.upsert("fts_records", record)
                         record_count += 1
                     else:
                         log.warning(f"Skipping record without ID: {record}")
@@ -92,8 +91,9 @@ def update(configuration: dict, state: dict):
                 has_more = data.get("has_more", False)
 
                 # Checkpoint every pagination batch
-                yield op.checkpoint({"next_cursor": next_cursor})
-                log.info(f"Checkpoint at {record_count} records, cursor: {next_cursor}")
+                if next_cursor:
+                    yield op.checkpoint({"next_cursor": next_cursor})
+                    log.info(f"Checkpoint at {record_count} records, cursor: {next_cursor}")
                 
                 if next_cursor:
                     params["cursor"] = next_cursor
@@ -118,31 +118,21 @@ def update(configuration: dict, state: dict):
                 log.severe(f"Unexpected error processing response: {str(e)}")
                 break
         
-        # Check if we hit the iteration limit
-        if iteration_count >= 200:
-            log.warning("Reached maximum number of API calls (200). Saving progress and exiting.")
+        # Handle max iterations reached
+        if iteration_count >= max_iterations and has_more:
+            log.warning(f"Reached maximum number of API calls ({max_iterations}). Saving progress and exiting.")
             if next_cursor:
                 yield op.checkpoint({"next_cursor": next_cursor})
-            return
         
         # Final checkpoint
-        if next_cursor:
+        if next_cursor and has_more is False:
             yield op.checkpoint({"next_cursor": next_cursor})
             log.info(f"Final checkpoint: {record_count} total records, cursor: {next_cursor}")
-        else:
-            log.info(f"Sync completed: {record_count} total records")
+        
+        log.info(f"Sync completed: {record_count} total records")
     
     except Exception as e:
         log.severe(f"Unexpected error in update function: {str(e)}")
 
 # This creates the connector object that will use the update function defined in this connector.py file.
 connector = Connector(update=update, schema=schema)
-
-# Check if the script is being run as the main module.
-if __name__ == "__main__":
-    import json
-    # Open the configuration.json file and load its contents into a dictionary.
-    with open("configuration.json", "r") as f:
-        configuration = json.load(f)
-    # Test connector by running the file directly
-    connector.debug(configuration=configuration)
