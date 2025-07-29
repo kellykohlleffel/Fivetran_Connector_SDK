@@ -1,6 +1,8 @@
+import time
+import json
 from fivetran_connector_sdk import Connector
-from fivetran_connector_sdk import Logging as log
 from fivetran_connector_sdk import Operations as op
+from fivetran_connector_sdk import Logging as log
 import requests
 
 def schema(configuration: dict):
@@ -12,6 +14,7 @@ def schema(configuration: dict):
         return []
 
     # Return minimal schema with ONLY table name and primary key
+    # According to the API spec, record_id is the primary key
     return [
         {
             "table": "mso_records",
@@ -20,76 +23,123 @@ def schema(configuration: dict):
     ]
 
 def update(configuration: dict, state: dict):
-    """Extract data from the MSO API and yield operations"""
-
-    # 1. Validate configuration
+    """Extract data from the endpoint and yield operations"""
+    
+    # Validate configuration
     api_key = configuration.get('api_key')
     if not api_key:
         log.severe("API key is missing from configuration")
         return
-
-    base_url = configuration.get('base_url', 'https://sdk-demo-api-dot-internal-sales.uc.r.appspot.com')
+    
+    base_url = configuration.get('base_url')
+    if not base_url:
+        log.severe("Base URL is missing from configuration")
+        return
+    
     page_size = int(configuration.get('page_size', '100'))
-
-    # 2. Set up session
+    
+    # Add the x-api-key to the session headers
+    headers = {"x-api-key": api_key}
     session = requests.Session()
-    session.headers.update({"api_key": api_key})
-
-    # 3. Retrieve last state
+    session.headers.update(headers)
+    
+    # Retrieve the state for change data capture
     next_cursor = state.get('next_cursor')
-
-    # 4. Pagination setup
+    
+    # Set up the parameters for the API request
     url = f"{base_url}/mso_data"
     params = {"page_size": page_size}
     if next_cursor:
         params["cursor"] = next_cursor
-
+        log.info(f"Starting sync from cursor: {next_cursor}")
+    else:
+        log.info("Starting initial sync")
+    
     record_count = 0
-    has_more = True
-
+    iteration_count = 0
+    has_more = True    
+    
     try:
-        while has_more:
+        while has_more and iteration_count < 200:
+            iteration_count += 1
             try:
-                log.info(f"Fetching data with params: {params}")
-                response = session.get(url, params=params)
-                response.raise_for_status()
+                # Make API request with retry logic
+                for attempt in range(3):
+                    try:
+                        response = session.get(url, params=params)
+                        response.raise_for_status()
+                        break
+                    except requests.exceptions.RequestException as e:
+                        if attempt == 2:
+                            raise
+                        log.warning(f"Request failed (attempt {attempt + 1}/3): {str(e)}")
+                        time.sleep(2 ** attempt)  # Exponential backoff
+                
                 data = response.json()
-
+                
+                # Process records
                 records = data.get("mso_records", [])
                 for record in records:
-                    yield op.upsert("mso_records", record)
-                    record_count += 1
-
-                    # Checkpoint after every 100 records
-                    if record_count % 100 == 0:
-                        next_cursor = data.get("next_cursor")
-                        if next_cursor:
-                            yield op.checkpoint({"next_cursor": next_cursor})
-                            log.info(f"Checkpoint saved after {record_count} records")
-
-                # Check if there are more pages
+                    # Ensure the record has an ID
+                    if 'record_id' in record:
+                        yield op.upsert("mso_records", record)
+                        record_count += 1
+                    else:
+                        log.warning(f"Skipping record without ID: {record}")
+                
+                # Update pagination info
                 next_cursor = data.get("next_cursor")
-                has_more = next_cursor is not None
-                if has_more:
-                    params["cursor"] = next_cursor
-                else:
-                    log.info("No more pages to fetch")
+                has_more = data.get("has_more", False)
 
+                # Checkpoint every pagination batch
+                yield op.checkpoint({"next_cursor": next_cursor})
+                log.info(f"Checkpoint at {record_count} records, cursor: {next_cursor}")
+                
+                if next_cursor:
+                    params["cursor"] = next_cursor
+                
+                log.info(f"Processed batch: {len(records)} records, has_more: {has_more}")
+                
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 401:
+                    log.severe("Authentication failed - check API key")
+                    return
+                elif e.response.status_code == 429:
+                    log.warning("Rate limit hit, waiting 60 seconds")
+                    time.sleep(60)
+                    continue
+                else:
+                    log.severe(f"HTTP error: {e.response.status_code} - {e.response.text}")
+                    break
             except requests.exceptions.RequestException as e:
                 log.severe(f"API request failed: {str(e)}")
                 break
-
-        # Final checkpoint
-        if next_cursor:
+            except Exception as e:
+                log.severe(f"Unexpected error processing response: {str(e)}")
+                break
+        
+        # Final checkpoint or iteration limit reached
+        if iteration_count >= 200:
+            log.info(f"Reached maximum iteration count (200). Saving checkpoint and exiting.")
+            if next_cursor:
+                yield op.checkpoint({"next_cursor": next_cursor})
+                log.info(f"Checkpoint at {record_count} records, cursor: {next_cursor}")
+        elif next_cursor:
             yield op.checkpoint({"next_cursor": next_cursor})
-            log.info(f"Final checkpoint saved. Total records processed: {record_count}")
-
+            log.info(f"Final checkpoint: {record_count} total records, cursor: {next_cursor}")
+        else:
+            log.info(f"Sync completed: {record_count} total records")
+    
     except Exception as e:
-        log.severe(f"Unexpected error: {str(e)}")
+        log.severe(f"Unexpected error in update function: {str(e)}")
 
-# Create the connector
+# This creates the connector object that will use the update function defined in this connector.py file.
 connector = Connector(update=update, schema=schema)
 
-# For debugging
+# Check if the script is being run as the main module.
 if __name__ == "__main__":
-    connector.debug()
+    # Open the configuration.json file and load its contents into a dictionary.
+    with open("configuration.json", "r") as f:
+        configuration = json.load(f)
+    # Adding this code to your `connector.py` allows you to test your connector by running your file directly from your IDE.
+    connector.debug(configuration=configuration)

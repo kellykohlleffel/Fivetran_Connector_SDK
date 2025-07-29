@@ -13,6 +13,7 @@ def schema(configuration: dict):
         return []
 
     # Return minimal schema with ONLY table name and primary key
+    # The API spec indicates record_id is the primary key for the dataset
     return [
         {
             "table": "fts_records",
@@ -42,25 +43,25 @@ def update(configuration: dict, state: dict):
     session.headers.update(headers)
     
     # Retrieve the state for change data capture
-    next_cursor = state.get('next_cursor')
+    cursor = state.get('cursor')
     
     # Set up the parameters for the API request
     url = f"{base_url}/fts_data"
     params = {"page_size": page_size}
-    if next_cursor:
-        params["cursor"] = next_cursor
-        log.info(f"Starting sync from cursor: {next_cursor}")
+    if cursor:
+        params["cursor"] = cursor
+        log.info(f"Starting sync from cursor: {cursor}")
     else:
         log.info("Starting initial sync")
     
     record_count = 0
     has_more = True
     iteration_count = 0
-    max_iterations = 200
     
     try:
-        while has_more and iteration_count < max_iterations:
+        while has_more and iteration_count < 200:
             iteration_count += 1
+            
             try:
                 # Make API request with retry logic
                 for attempt in range(3):
@@ -87,16 +88,14 @@ def update(configuration: dict, state: dict):
                         log.warning(f"Skipping record without ID: {record}")
                 
                 # Update pagination info
-                next_cursor = data.get("next_cursor")
+                cursor = data.get("next_cursor")
                 has_more = data.get("has_more", False)
 
                 # Checkpoint every pagination batch
-                if next_cursor:
-                    yield op.checkpoint({"next_cursor": next_cursor})
-                    log.info(f"Checkpoint at {record_count} records, cursor: {next_cursor}")
-                
-                if next_cursor:
-                    params["cursor"] = next_cursor
+                if cursor:
+                    yield op.checkpoint({"cursor": cursor})
+                    log.info(f"Checkpoint at {record_count} records, cursor: {cursor}")
+                    params["cursor"] = cursor
                 
                 log.info(f"Processed batch: {len(records)} records, has_more: {has_more}")
                 
@@ -118,21 +117,25 @@ def update(configuration: dict, state: dict):
                 log.severe(f"Unexpected error processing response: {str(e)}")
                 break
         
-        # Handle max iterations reached
-        if iteration_count >= max_iterations and has_more:
-            log.warning(f"Reached maximum number of API calls ({max_iterations}). Saving progress and exiting.")
-            if next_cursor:
-                yield op.checkpoint({"next_cursor": next_cursor})
-        
         # Final checkpoint
-        if next_cursor and has_more is False:
-            yield op.checkpoint({"next_cursor": next_cursor})
-            log.info(f"Final checkpoint: {record_count} total records, cursor: {next_cursor}")
+        if cursor:
+            yield op.checkpoint({"cursor": cursor})
+            log.info(f"Final checkpoint: {record_count} total records, cursor: {cursor}")
         
-        log.info(f"Sync completed: {record_count} total records")
+        if iteration_count >= 200:
+            log.info(f"Reached maximum iteration count (200). Exiting with cursor: {cursor}")
+        else:
+            log.info(f"Sync completed: {record_count} total records")
     
     except Exception as e:
         log.severe(f"Unexpected error in update function: {str(e)}")
 
-# This creates the connector object that will use the update function defined in this connector.py file.
+# Create the connector object that will use the update and schema functions
 connector = Connector(update=update, schema=schema)
+
+# For debugging purposes
+if __name__ == "__main__":
+    import json
+    with open("configuration.json", "r") as f:
+        configuration = json.load(f)
+    connector.debug(configuration=configuration)
