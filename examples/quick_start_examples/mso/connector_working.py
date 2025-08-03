@@ -1,9 +1,9 @@
-import requests
 import time
 import json
 from fivetran_connector_sdk import Connector
 from fivetran_connector_sdk import Operations as op
 from fivetran_connector_sdk import Logging as log
+import requests
 
 def schema(configuration: dict):
     """Define the minimal table schema for Fivetran"""
@@ -14,6 +14,7 @@ def schema(configuration: dict):
         return []
 
     # Return minimal schema with ONLY table name and primary key
+    # According to the API spec, record_id is the primary key
     return [
         {
             "table": "mso_records",
@@ -22,7 +23,7 @@ def schema(configuration: dict):
     ]
 
 def update(configuration: dict, state: dict):
-    """Extract data from the MSO endpoint and yield operations"""
+    """Extract data from the endpoint and yield operations"""
     
     # Validate configuration
     api_key = configuration.get('api_key')
@@ -55,13 +56,12 @@ def update(configuration: dict, state: dict):
         log.info("Starting initial sync")
     
     record_count = 0
-    has_more = True
     iteration_count = 0
+    has_more = True    
     
     try:
         while has_more and iteration_count < 200:
             iteration_count += 1
-            
             try:
                 # Make API request with retry logic
                 for attempt in range(3):
@@ -98,7 +98,7 @@ def update(configuration: dict, state: dict):
                 if next_cursor:
                     params["cursor"] = next_cursor
                 
-                log.info(f"Processed batch {iteration_count}: {len(records)} records, has_more: {has_more}")
+                log.info(f"Processed batch: {len(records)} records, has_more: {has_more}")
                 
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 401:
@@ -118,14 +118,13 @@ def update(configuration: dict, state: dict):
                 log.severe(f"Unexpected error processing response: {str(e)}")
                 break
         
-        # Check if we hit the iteration limit
+        # Final checkpoint or iteration limit reached
         if iteration_count >= 200:
-            yield op.checkpoint({"next_cursor": next_cursor})
-            log.info(f"Reached maximum iterations (200). Checkpoint saved with cursor: {next_cursor}. Please run sync again to continue.")
-            return
-        
-        # Final checkpoint
-        if next_cursor:
+            log.info(f"Reached maximum iteration count (200). Saving checkpoint and exiting.")
+            if next_cursor:
+                yield op.checkpoint({"next_cursor": next_cursor})
+                log.info(f"Checkpoint at {record_count} records, cursor: {next_cursor}")
+        elif next_cursor:
             yield op.checkpoint({"next_cursor": next_cursor})
             log.info(f"Final checkpoint: {record_count} total records, cursor: {next_cursor}")
         else:
@@ -138,9 +137,6 @@ def update(configuration: dict, state: dict):
 connector = Connector(update=update, schema=schema)
 
 # Check if the script is being run as the main module.
-# This is Python's standard entry method allowing your script to be run directly from the command line or IDE 'run' button.
-# This is useful for debugging while you write your code. Note this method is not called by Fivetran when executing your connector in production.
-# Please test using the Fivetran debug command prior to finalizing and deploying your connector.
 if __name__ == "__main__":
     # Open the configuration.json file and load its contents into a dictionary.
     with open("configuration.json", "r") as f:
