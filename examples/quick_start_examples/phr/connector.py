@@ -22,7 +22,7 @@ def schema(configuration: dict):
     ]
 
 def update(configuration: dict, state: dict):
-    """Extract data from the phr_data endpoint and yield operations"""
+    """Extract data from the PHR endpoint and yield operations"""
     
     # Validate configuration
     api_key = configuration.get('api_key')
@@ -55,8 +55,8 @@ def update(configuration: dict, state: dict):
         log.info("Starting initial sync")
     
     record_count = 0
-    has_more = True
     iteration_count = 0
+    has_more = True    
     
     try:
         while has_more:
@@ -85,7 +85,7 @@ def update(configuration: dict, state: dict):
                 # Process records
                 records = data.get("phr_records", [])
                 for record in records:
-                    # Ensure the record has an ID
+                    # Ensure the record has the primary key
                     if 'record_id' in record:
                         yield op.upsert("phr_records", record)
                         record_count += 1
@@ -108,9 +108,6 @@ def update(configuration: dict, state: dict):
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 401:
                     log.severe("Authentication failed - check API key")
-                    return
-                elif e.response.status_code == 403:
-                    log.severe("Access forbidden - check API permissions")
                     return
                 elif e.response.status_code == 429:
                     log.warning("Rate limit hit, waiting 60 seconds")
@@ -136,16 +133,16 @@ def update(configuration: dict, state: dict):
     except Exception as e:
         log.severe(f"Unexpected error in update function: {str(e)}")
 
-# This creates the connector object that will use the update function defined in this connector.py file.
+# This creates the connector object that will use the update function defined in this connector.py file
 connector = Connector(update=update, schema=schema)
 
-# Check if the script is being run as the main module.
-# This is Python's standard entry method allowing your script to be run directly from the command line or IDE 'run' button.
-# This is useful for debugging while you write your code. Note this method is not called by Fivetran when executing your connector in production.
-# Please test using the Fivetran debug command prior to finalizing and deploying your connector.
+# Check if the script is being run as the main module
+# This is Python's standard entry method allowing your script to be run directly from the command line or IDE 'run' button
+# This is useful for debugging while you write your code. Note this method is not called by Fivetran when executing your connector in production
+# Please test using the Fivetran debug command prior to finalizing and deploying your connector
 if __name__ == "__main__":
-    # Open the configuration.json file and load its contents into a dictionary.
+    # Open the configuration.json file and load its contents into a dictionary
     with open("configuration.json", "r") as f:
         configuration = json.load(f)
-    # Adding this code to your `connector.py` allows you to test your connector by running your file directly from your IDE.
+    # Adding this code to your `connector.py` allows you to test your connector by running your file directly from your IDE
     connector.debug(configuration=configuration)
