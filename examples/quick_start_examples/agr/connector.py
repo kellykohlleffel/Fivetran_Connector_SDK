@@ -16,13 +16,13 @@ def schema(configuration: dict):
     # Return minimal schema with ONLY table name and primary key
     return [
         {
-            "table": "cds_records",
+            "table": "agr_records",
             "primary_key": ["record_id"]
         }
     ]
 
 def update(configuration: dict, state: dict):
-    """Extract data from the CDS endpoint and yield operations"""
+    """Extract data from the Agriculture API and yield operations"""
     
     # Validate configuration
     api_key = configuration.get('api_key')
@@ -46,7 +46,7 @@ def update(configuration: dict, state: dict):
     next_cursor = state.get('next_cursor')
     
     # Set up the parameters for the API request
-    url = f"{base_url}/cds_data"
+    url = f"{base_url}/agr_data"
     params = {"page_size": page_size}
     if next_cursor:
         params["cursor"] = next_cursor
@@ -55,8 +55,8 @@ def update(configuration: dict, state: dict):
         log.info("Starting initial sync")
     
     record_count = 0
-    has_more = True
     iteration_count = 0
+    has_more = True    
     
     try:
         while has_more and iteration_count < 200:
@@ -77,15 +77,15 @@ def update(configuration: dict, state: dict):
                 
                 data = response.json()
                 
-                # Process records - using cds_records based on the dataset pattern
-                records = data.get("cds_records", [])
+                # Process records from agr_records dataset
+                records = data.get("agr_records", [])
                 for record in records:
-                    # Ensure the record has an ID
+                    # Ensure the record has a record_id
                     if 'record_id' in record:
-                        yield op.upsert("cds_records", record)
+                        yield op.upsert("agr_records", record)
                         record_count += 1
                     else:
-                        log.warning(f"Skipping record without ID: {record}")
+                        log.warning(f"Skipping record without record_id: {record}")
                 
                 # Update pagination info
                 next_cursor = data.get("next_cursor")
@@ -98,7 +98,7 @@ def update(configuration: dict, state: dict):
                 if next_cursor:
                     params["cursor"] = next_cursor
                 
-                log.info(f"Processed batch: {len(records)} records, has_more: {has_more}")
+                log.info(f"Processed batch {iteration_count}: {len(records)} records, has_more: {has_more}")
                 
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 401:
@@ -120,9 +120,9 @@ def update(configuration: dict, state: dict):
         
         # Check if we hit the iteration limit
         if iteration_count >= 200:
-            log.info("Reached maximum iteration limit (200). Saving checkpoint and exiting gracefully.")
-            if next_cursor:
-                yield op.checkpoint({"next_cursor": next_cursor})
+            log.info(f"Reached maximum iteration limit (200). Saving checkpoint and exiting gracefully. Processed {record_count} records so far.")
+            yield op.checkpoint({"next_cursor": next_cursor})
+            return
         
         # Final checkpoint
         if next_cursor:
